@@ -1,0 +1,43 @@
+<resources>
+	<string name="app_name">Zebra Card Printer</string>
+	<!--	Request Permissions 	-->
+	<string name="image_fail">Se necesita permiso para hacer modificaciones en las plantillas</string>
+	<string name="missing_permission_media">Se necesita otorgar permisos para el poder usar la aplicación</string>
+	<string name="msg_waiting_requesting_usb_permission">Solicitando permisos USB</string>
+	<string name="msg_warning_usb_permissions_denied">Se necesita otorgar permisos para conectar por USB</string>
+	<!--	Card Template 	-->
+	<string name="desc_bg_card">Vista previa de vista frontal de la plantilla</string>
+	<!--	Template Importing 	-->
+	<string name="select_template_file">Selecciona una plantilla</string>
+	<string name="adding_template_tittle">Añadir Plantilla De…</string>
+	<!--	Selection Templates	-->
+	<string name="action_selected">%d</string>
+	<string name="menu_template_delete_option">Eliminar</string>
+	<!--	Printer Banner	-->
+	<string name="progress_text">Cargando…</string>
+	<string name="desc_no_printer_icon">No Printer Icon</string>
+	<string name="no_printer_selected">Sin Impresora Seleccionada</string>
+	<string name="printer_model">Printer Model</string>
+	<string name="printer_address">255.255.255.255</string>
+	<!--	Connection Printer	-->
+	<string name="desc_printer_image">Discovered Printer Image</string>
+	<string name="no_printers_found">No se encontraro impresoras</string>
+	<string name="connecting_to_printer">Extableciendo conexión</string>
+	<string name="printer_model_not_supported">Modelo no compatible</string>
+	<string name="no_printer_model_found">Modelo de impresora desconocido</string>
+	<string name="error_manually_connecting_message">Error con conexión manual a la impresora: %1$s</string>
+	<string name="error_discovering_printers_message">Error mientras se buscaba impresoras: %1$s</string>
+	<string name="dialog_title_manually_connect">Conexión manual</string>
+	<string name="printer_ip_address">Dirección IP de la impresora</string>
+	<string name="connect">Conectar</string>
+	<string name="msg_unable_to_communicate_with_printer">Incapaz de comunicarse con la impresora</string>
+	<!--	Disconnection  Printer	-->
+	<string name="dialog_title_disconnect_printer">¿Desea desvincular la impresora?</string>
+	<string name="dialog_message_disconnect_printer">El telefonó se desconectará de la impresora seleccionada</string>
+	<string name="disconnect">Desconectar</string>
+	<string name="msg_error_updating_printer_status">Error actualizando el estado de la impresora: %1$s</string>
+	<!--	Reconnection  Printer	-->
+	<string name="msg_waiting_reconnecting_to_printer">Reconectando con la impresora&#8230;</string>
+	<string name="msg_error_reconnecting_to_printer">Error al reconectar con la impresora: %1$s</string>
+	<!--	END Reconnection Printer	-->
+</resources>

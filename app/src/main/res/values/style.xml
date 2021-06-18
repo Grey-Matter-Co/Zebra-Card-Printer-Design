@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+	<!-- Banner Style -->
+	<style name="BannerInclude">
+		<item name="android:layout_width">match_parent</item>
+		<item name="android:layout_height">@dimen/banner_size</item>
+		<item name="android:visibility">gone</item>
+	</style>
+	<style name="BannerContainer">
+		<item name="android:layout_width">match_parent</item>
+		<item name="android:layout_height">match_parent</item>
+		<item name="android:background">@color/grey_5</item>
+		<item name="android:foreground">?attr/selectableItemBackground</item>
+		<item name="android:clickable">true</item>
+		<item name="android:focusable">true</item>
+	</style>
+	<style name="BannerContainer.Error">
+		<item name="android:background">@color/red_600</item>
+	</style>
+	<style name="banner_prog_icon">
+		<item name="android:layout_width">@dimen/banner_icon_size</item>
+		<item name="android:layout_height">@dimen/banner_icon_size</item>
+		<item name="android:padding">@dimen/banner_icon_padding</item>
+	</style>
+	<style name="BannerText">
+		<item name="android:layout_width">wrap_content</item>
+		<item name="android:layout_height">wrap_content</item>
+		<item name="android:textAppearance">@style/TextAppearance.AppCompat.Widget.Button</item>
+		<item name="android:textColor">@color/bannerText</item>
+		<item name="android:textSize">@dimen/banner_text_size</item>
+	</style>
+	<style name="PrinterText" parent="TextAppearance.AppCompat">
+		<item name="android:layout_width">wrap_content</item>
+		<item name="android:layout_height">wrap_content</item>
+		<item name="android:textAppearance">@style/TextAppearance.AppCompat.Body2</item>
+		<item name="android:textColor">@color/grey_95</item>
+		<item name="android:text">@string/printer_address</item>
+	</style>
+	<style name="PrinterText.Tittle" parent="PrinterText">
+		<item name="android:textAppearance">@style/TextAppearance.AppCompat.Button</item>
+		<item name="android:textSize">18sp</item>
+		<item name="android:text">@string/printer_model</item>
+	</style>
+
+	<style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
+	<style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
+</resources>

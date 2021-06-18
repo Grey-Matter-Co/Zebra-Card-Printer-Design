@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+	<!--	General Spacings	-->
+	<dimen name="spacing_xsmall">2dp</dimen>
+	<dimen name="spacing_small">3dp</dimen>
+	<dimen name="spacing_medium">5dp</dimen>
+	<dimen name="spacing_xmedium">7dp</dimen>
+	<dimen name="spacing_middle">10dp</dimen>
+	<dimen name="spacing_large">15dp</dimen>
+	<dimen name="spacing_smlarge">18dp</dimen>
+	<dimen name="spacing_mlarge">20dp</dimen>
+	<dimen name="spacing_mxlarge">25dp</dimen>
+	<dimen name="spacing_xlarge">35dp</dimen>
+	<dimen name="spacing_xmlarge">40dp</dimen>
+	<dimen name="spacing_xxlarge">50dp</dimen>
+	<dimen name="spacing_xxxlarge">55dp</dimen>
+
+	<!--	Card Template	-->
+	<dimen name="card_rad_corn">@dimen/spacing_middle</dimen>
+	<dimen name="card_width">342.4dp</dimen>
+	<dimen name="card_height">215.92dp</dimen>
+	<!--	END Card Template	-->
+
+	<!--	Printer Banner	-->
+	<dimen name="banner_size">56dp</dimen>
+	<dimen name="banner_icon_size">32dp</dimen>
+	<dimen name="banner_icon_padding">@dimen/spacing_small</dimen>
+	<dimen name="banner_text_size">18sp</dimen>
+	<dimen name="fab_margin">16dp</dimen>
+	<color name="progress_text">#888888</color>
+	<!--	END Printer Banner	-->
+</resources>
