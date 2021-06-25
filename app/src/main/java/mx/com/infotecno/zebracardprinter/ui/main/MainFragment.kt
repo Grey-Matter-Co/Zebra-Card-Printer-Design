@@ -43,14 +43,11 @@ import mx.com.infotecno.zebracardprinter.databinding.MainFragmentBinding
 import mx.com.infotecno.zebracardprinter.discovery.PrinterStatusUpdateTask
 import mx.com.infotecno.zebracardprinter.discovery.ReconnectPrinterTask
 import mx.com.infotecno.zebracardprinter.discovery.SelectedPrinterManager
-import mx.com.infotecno.zebracardprinter.util.XMLMapper
-import mx.com.infotecno.zebracardprinter.util.DialogHelper
-import mx.com.infotecno.zebracardprinter.util.ProgressOverlayHelper
-import mx.com.infotecno.zebracardprinter.util.UsbHelper
-import mx.com.infotecno.zebracardprinter.util.XMLDecoder
+import mx.com.infotecno.zebracardprinter.util.*
 import java.io.ByteArrayInputStream
 import java.io.IOException
 import java.io.InputStream
+import java.io.StringWriter
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
 import kotlin.coroutines.CoroutineContext
@@ -218,7 +215,7 @@ class MainFragment : Fragment(), ActionMode.Callback, CoroutineScope {
 		container: ViewGroup?,
 		savedInstanceState: Bundle?
 	): View {
-		viewModel.action.observe(viewLifecycleOwner, { handleAction(it) })
+		viewModel.action.observe(viewLifecycleOwner) { handleAction(it) }
 		binding = MainFragmentBinding.inflate(inflater)
 		binding.recViewZcards.adapter = zCardAdapter
 		return binding.root
@@ -443,17 +440,12 @@ class MainFragment : Fragment(), ActionMode.Callback, CoroutineScope {
 					) {
 						requireActivity().runOnUiThread {
 							if (exception != null) {
-								DialogHelper.showErrorDialog(
-									requireActivity(), getString(
-										R.string.msg_error_updating_printer_status,
-										exception.message
-									)
-								)
+								DialogHelper.showErrorDialog(requireActivity(), getString(R.string.msg_error_updating_printer_status, exception.message))
 								SelectedPrinterManager.setSelectedPrinter(null)
 								refreshSelectedPrinterBanner()
-							} else
-								binding.bannerPrnSelContainer.bannerPrnSelIcon.printerStatus =
-									printerStatus
+							}
+							else
+								binding.bannerPrnSelContainer.bannerPrnSelIcon.printerStatus = printerStatus
 						}
 					}
 				})
@@ -576,8 +568,12 @@ class MainFragment : Fragment(), ActionMode.Callback, CoroutineScope {
 				Log.d("EMBY", "loadzip: ${ze!!.name.toLowerCase()}")
 
 				with(ze!!.name.toLowerCase()) {
+
 					when {
-						contains(".scd") -> XMLMapper.map(XMLDecoder.parse(ByteArrayInputStream(zipIs.readBytes())))
+						contains(".scd") ->  {
+							val (template,fields) = XMLMapper.map(XMLDecoder.parse(ByteArrayInputStream(zipIs.readBytes())))
+							XMLEncoder.parse()
+						}
 						equals("frontpreview.png") -> {
 							val bytes = zipIs.readBytes()
 							bmImgPreview = BitmapFactory.decodeByteArray(bytes, 0, bytes.size)

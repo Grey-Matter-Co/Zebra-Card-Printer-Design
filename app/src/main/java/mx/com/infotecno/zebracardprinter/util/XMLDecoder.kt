@@ -10,7 +10,6 @@ import kotlin.jvm.Throws
 import mx.com.infotecno.zebracardprinter.model.XMLCardDesign.*
 
 object XMLDecoder {
-
     private val ns: String? = null
 
     @Throws(XmlPullParserException::class, IOException::class)
@@ -54,42 +53,21 @@ object XMLDecoder {
             if (parser.eventType != XmlPullParser.START_TAG)
                 continue
             when (parser.name) {
-                "DynamicFields" -> dynamicFields =
-                    readDynamicFields(
-                        parser
-                    )
-                "FrontRibbon" -> frontRibbon =
-                    readRibbon(
-                        parser,
-                        "FrontRibbon"
-                    )
-                "BackRibbon" -> backRibbon =
-                    readRibbon(
-                        parser,
-                        "BackRibbon"
-                    )
-                "FrontDocument" -> frontDocument =
-                    readDocument(
-                        parser,
-                        "FrontDocument"
-                    )
-                "BackDocument" -> backDocument =
-                    readDocument(
-                        parser,
-                        "BackDocument"
-                    )
-                else -> skip(
-                    parser
-                )
+                "DynamicFields" -> dynamicFields = readDynamicFields(parser)
+                "FrontRibbon" -> frontRibbon = readRibbon(parser, "FrontRibbon")
+                "BackRibbon" -> backRibbon = readRibbon(parser, "BackRibbon")
+                "FrontDocument" -> frontDocument = readDocument(parser, "FrontDocument")
+                "BackDocument" -> backDocument = readDocument(parser, "BackDocument")
+                else -> skip(parser)
             }
         }
-            Log.d("EMBY", "dynamicFields> $dynamicFields\n\n\n")
-            Log.d("EMBY", "frontRibbon> ${frontRibbon.toString()}\n\n\n")
-            Log.d("EMBY", "backRibbon> ${backRibbon.toString()}\n\n\n")
-            Log.d("EMBY", "frontDocument> ${frontDocument.toString()}\n\n\n")
-            Log.d("EMBY", "backDocument> ${backDocument.toString()}\n\n\n")
+//            Log.d("EMBY", "dynamicFields> $dynamicFields\n\n\n")
+//            Log.d("EMBY", "frontRibbon> ${frontRibbon.toString()}\n\n\n")
+//            Log.d("EMBY", "backRibbon> ${backRibbon.toString()}\n\n\n")
+//            Log.d("EMBY", "frontDocument> ${frontDocument.toString()}\n\n\n")
+//            Log.d("EMBY", "backDocument> ${backDocument.toString()}\n\n\n")
 
-        return CardDesignProject(dynamicFields, frontRibbon, backRibbon, frontDocument, backDocument, version, name, description, cardWidth, cardHeight, hasIDChip, hasMagstripe, hasLaminate, hasOverlay, hasUV, isSingleSided, writeDirection, xmlns)
+        return CardDesignProject(dynamicFields, frontRibbon, backRibbon, frontDocument, backDocument, version, name, description, cardWidth, cardHeight, hasIDChip!!, hasMagstripe!!, hasLaminate!!, hasOverlay!!, hasUV!!, isSingleSided!!, writeDirection, xmlns)
     }
 
     @Throws(XmlPullParserException::class, IOException::class)
@@ -130,7 +108,7 @@ object XMLDecoder {
         if (parser.name == "DynamicField")
             parser.nextTag()
 
-        return DynamicField(name, typeName, textFormat, dataFieldName, defaultValue, isFixedLength, fixedLength, alignment, paddingValue)
+        return DynamicField(name, typeName, textFormat, dataFieldName, defaultValue, isFixedLength!!, fixedLength, alignment, paddingValue)
     }
 
     @Throws(XmlPullParserException::class, IOException::class)
@@ -274,10 +252,7 @@ object XMLDecoder {
                         parser
                     )
                 )
-                else -> { Log.d("EMBY ERROR", "unhandled Tag"); skip(
-                    parser
-                )
-                }
+                else -> { Log.d("EMBY ERROR", "unhandled Tag"); skip(parser) }
             }
         }
         return  elements
@@ -296,7 +271,8 @@ object XMLDecoder {
         val left: Double = parser.getAttributeValue(null, "Left").toDouble()
         val width: Double = parser.getAttributeValue(null, "Width").toDouble()
         val height: Double = parser.getAttributeValue(null, "Height").toDouble()
-        val fixedHeightWidthRatio: Boolean = parser.getAttributeValue(null, "FixedHeightWidthRatio").toBoolean()
+        val fixedHeightWidthRatio: Boolean = parser.getAttributeValue(null, "FixedHeightWidthRatio")!!
+            .toBoolean()
         val widthRatio: Double = parser.getAttributeValue(null, "WidthRatio").toDouble()
         val heightRatio: Double = parser.getAttributeValue(null, "HeightRatio").toDouble()
         val zIndex: Double = parser.getAttributeValue(null, "ZIndex").toDouble()
@@ -315,13 +291,10 @@ object XMLDecoder {
             if (parser.eventType != XmlPullParser.START_TAG)
                 continue
             if (parser.name == "Border")
-                border =
-                    readBorder(
-                        parser
-                    )
+                border = readBorder(parser)
         }
 
-        return Element.XamlImageElement( source, transparency, pixelInterpolationMode, name, top, left, width, height, fixedHeightWidthRatio, widthRatio, heightRatio, zIndex, angle, visible, locked, marginLeft, marginTop, marginRight, marginBottom, foregroundColor, backgroundColor, border)
+        return Element.XamlImageElement( source, transparency, pixelInterpolationMode, name, top, left, width, height, fixedHeightWidthRatio, widthRatio, heightRatio, zIndex, angle, visible!!, locked!!, marginLeft, marginTop, marginRight, marginBottom, foregroundColor, backgroundColor, border)
     }
 
     @Throws(XmlPullParserException::class, IOException::class)
@@ -371,7 +344,7 @@ object XMLDecoder {
                     )
         }
 
-        return Element.XamlTextElement(text, textColor, alignmentV, alignmentH, fontFamily, fontStyle, fontWeight, fontSize, textDecorations, wrapText, clipContent, fitContentToSize, name, top, left, width, height, fixedHeightWidthRatio, widthRatio, heightRatio, zIndex, angle, visible, locked, marginLeft, marginTop, marginRight, marginBottom, foregroundColor, backgroundColor, border)
+        return Element.XamlTextElement(text, textColor, alignmentV, alignmentH, fontFamily, fontStyle, fontWeight, fontSize, textDecorations, wrapText!!, clipContent!!, fitContentToSize!!, name, top, left, width, height, fixedHeightWidthRatio!!, widthRatio, heightRatio, zIndex, angle, visible!!, locked!!, marginLeft, marginTop, marginRight, marginBottom, foregroundColor, backgroundColor, border)
     }
 
     @Throws(XmlPullParserException::class, IOException::class)
@@ -409,7 +382,7 @@ object XMLDecoder {
                 border =readBorder(parser)
         }
 
-        return Element.XamlPassportPhotoElement(transparency, pixelInterpolationMode, stretchMode, name, top, left, width, height, fixedHeightWidthRatio, widthRatio, heightRatio, zIndex, angle, visible, locked, marginLeft, marginTop, marginRight, marginBottom, foregroundColor, backgroundColor, border)
+        return Element.XamlPassportPhotoElement(transparency, pixelInterpolationMode, stretchMode, name, top, left, width, height, fixedHeightWidthRatio!!, widthRatio, heightRatio, zIndex, angle, visible!!, locked!!, marginLeft, marginTop, marginRight, marginBottom, foregroundColor, backgroundColor, border)
     }
 
     @Throws(XmlPullParserException::class, IOException::class)
