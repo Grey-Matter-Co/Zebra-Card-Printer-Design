@@ -18,4 +18,5 @@
 	<color name="bannerText"> @color/grey_5</color>
 	<color name="transparent_white_overlay">#EFFFFFFF</color>
 	<!--	END Printer Banner	-->
+    <string name="msg_error_template_already_exists">Ya existe un template con mismo nombre</string>
 </resources>

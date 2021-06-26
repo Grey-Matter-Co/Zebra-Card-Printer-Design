@@ -47,7 +47,6 @@ import mx.com.infotecno.zebracardprinter.util.*
 import java.io.ByteArrayInputStream
 import java.io.IOException
 import java.io.InputStream
-import java.io.StringWriter
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
 import kotlin.coroutines.CoroutineContext
@@ -560,30 +559,56 @@ class MainFragment : Fragment(), ActionMode.Callback, CoroutineScope {
 
 	@Throws(IOException::class)
 	private fun loadzip(inputStream: InputStream) {
-		var bmImgPreview: Bitmap? = null
+		var alreadyExists: Boolean = false
+
+		var frontpreview: Bitmap? = null
+		var xml = ""
+		var templateName = ""
+		val fontFilesList = mutableListOf<Pair<String, ByteArray>>()
+		val imageFilesList = mutableListOf<Pair<String, Bitmap>>()
+
+
 		val zipIs = ZipInputStream(inputStream)
 		var ze: ZipEntry?
-		while (zipIs.nextEntry.also { ze = it } != null) {
+
+
+		while ((zipIs.nextEntry.also { ze = it } != null) and !alreadyExists) {
 			if (ze != null) {
-				Log.d("EMBY", "loadzip: ${ze!!.name.toLowerCase()}")
+				Log.d("EMBY", "loadzip: ${ze!!.name.toLowerCase().substringAfterLast("\\")}")
 
-				with(ze!!.name.toLowerCase()) {
-
-					when {
-						contains(".scd") ->  {
+				with(ze!!.name.toLowerCase().substringAfterLast("\\")) { when {
+					contains(".scd") ->  {
+						templateName = ze!!.name.substringBeforeLast(".")
+						alreadyExists = viewModel.alreadyExistsTemplate(templateName)
+						if (!alreadyExists) {
 							val (template,fields) = XMLMapper.map(XMLDecoder.parse(ByteArrayInputStream(zipIs.readBytes())))
-							XMLEncoder.parse()
-						}
-						equals("frontpreview.png") -> {
-							val bytes = zipIs.readBytes()
-							bmImgPreview = BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
-							binding.recViewZcards.findViewById<ImageView>(R.id.card_bg).setImageBitmap(bmImgPreview)
-						}
-						else -> {}
+							xml = XMLEncoder.parse(template)
+						} else {}
 					}
-				}
+					equals("frontpreview.png") -> {
+						val bytes = zipIs.readBytes()
+						frontpreview = BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
+						binding.recViewZcards.findViewById<ImageView>(R.id.card_bg).setImageBitmap(frontpreview)
+					}
+					contains(".ttf") -> {
+						val bytes = zipIs.readBytes()
+						fontFilesList.add(Pair(this, bytes))
+					}
+					contains(".png") or contains("jpg") or contains("jpeg") -> {
+						val bytes = zipIs.readBytes()
+						imageFilesList.add(Pair(this, BitmapFactory.decodeByteArray(bytes, 0, bytes.size)))
+					}
+					else -> Log.e("EMBY", "loadzip: UNKOWN FILES" )
+				}}
 			}
 		}
+
+		if (alreadyExists)
+			DialogHelper.showErrorDialog(requireActivity(), getString(R.string.msg_error_template_already_exists))
+		else {
+			viewModel.saveTemplate(requireActivity(), templateName, xml, frontpreview!!, fontFilesList, imageFilesList)
+		}
+
 		zipIs.close()
 
 	}

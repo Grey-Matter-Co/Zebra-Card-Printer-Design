@@ -4,6 +4,7 @@ import android.app.Activity
 import android.app.Application
 import android.content.ContentResolver
 import android.database.ContentObserver
+import android.graphics.Bitmap
 import android.hardware.usb.UsbDevice
 import android.hardware.usb.UsbManager
 import android.net.Uri
@@ -72,6 +73,28 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    fun  saveTemplate(activity: Activity, templateName: String, xml: String, frontpreview: Bitmap, fontFilesList: List<Pair<String, ByteArray>>, imageFilesList: List<Pair<String, Bitmap>>) {
+        viewModelScope.launch {
+            try {
+                //val templateName = FilenameUtils.removeExtension(UriHelper.getFilename(getApplication<Application>(), uri)!!)
+                val storedTemplateNames: List<String> = zebraCardTemplate.allTemplateNames
+
+                if (storedTemplateNames.contains(templateName))
+                    zebraCardTemplate.deleteTemplate(templateName)
+                zebraCardTemplate.saveTemplate(templateName, xml)
+                FileHelper.saveTemplateResources(getApplication<Application>(), templateName, frontpreview, fontFilesList, imageFilesList)
+            }
+            catch (e: Exception) {
+                val errorMessage = if (e is ZebraCardException) "invalid template file selected"
+                else e.message!!
+                DialogHelper.showErrorDialog(activity, "error_selecting_template_message: $errorMessage")
+            }
+        }
+    }
+
+    fun alreadyExistsTemplate(templateName: String) =
+        zebraCardTemplate.allTemplateNames.contains(templateName)
+
     fun requestStoragePermissions()
         = _actions.postValue(ZCardTemplateAction.StoragePermissionsRequested)
 
@@ -80,8 +103,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     fun deleteTemplates(templates: List<ZCardTemplate>) {
         viewModelScope.launch {
-            for (temp in templates) {
-                val completed = FileHelper.deleteTemplate(zebraCardTemplate, temp)
+            for (template in templates) {
+                val completed = FileHelper.deleteTemplate(getApplication<Application>(), zebraCardTemplate, template)
                 if (completed)
                     _actions.postValue(ZCardTemplateAction.TemplatesDeleted(FileHelper.queryTemplatesOnDevice(getApplication<Application>(), zebraCardTemplate)))
             }

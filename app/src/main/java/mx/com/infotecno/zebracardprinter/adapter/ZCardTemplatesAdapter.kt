@@ -2,7 +2,6 @@ package mx.com.infotecno.zebracardprinter.adapter
 
 import android.annotation.SuppressLint
 import android.graphics.PorterDuff
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -17,7 +16,6 @@ import mx.com.infotecno.zebracardprinter.R
 import mx.com.infotecno.zebracardprinter.adapter.ZCardTemplatesAdapter.ZCardViewHolder
 import mx.com.infotecno.zebracardprinter.model.ZCardTemplate
 
-//class ZCardAdapter(private var zCards: List<ZCardTemplate>): RecyclerView.Adapter<ZCardViewHolder>()
 class ZCardTemplatesAdapter(val clickListener: (ZCardTemplate, Int) -> Unit, val longClickListener: (Int) -> Boolean): ListAdapter<ZCardTemplate, ZCardViewHolder>(DiffCallback())
 {
     var tracker: SelectionTracker<String>? = null
@@ -33,14 +31,17 @@ class ZCardTemplatesAdapter(val clickListener: (ZCardTemplate, Int) -> Unit, val
     // Configures card view
     override fun onBindViewHolder(holder: ZCardViewHolder, position: Int)
     {
-        val card = getItem(position)
+        val card: ZCardTemplate = getItem(position)
 
         tracker?.let {
             if (it.isSelected(""))
                 it.setItemsSelected(listOf(""), false)
 
             if (position>0)
-                holder.card.setImageResource(card.idBackground)
+                if (card.frontPreview != null)
+                    holder.card.setImageBitmap(card.frontPreview)
+                else
+                    holder.card.setImageResource(card.idBackground)
             else
                 holder.card.setBackgroundResource(card.idBackground)
 

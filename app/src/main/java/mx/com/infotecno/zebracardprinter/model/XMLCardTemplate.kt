@@ -57,7 +57,7 @@ sealed class XMLCardTemplate {
 //        bold “yes” or “no”; default is “no”
 //        italic “yes” or “no”; default is “no”
 //        underline “yes” or “no”; default is “no”
-	data class Font (val id: Int, val name: String = "Arial", val size: Double = 10.0, val bold: BOOLEAN = BOOLEAN.No, val italic: BOOLEAN = BOOLEAN.No, val underline: BOOLEAN = BOOLEAN.No)
+	data class Font (val id: Int, val name: String = "Arial", val size: Int = 10, val bold: BOOLEAN = BOOLEAN.No, val italic: BOOLEAN = BOOLEAN.No, val underline: BOOLEAN = BOOLEAN.No)
 
 	//    <side name="" orientation="" rotation="" sharpness="" k_mode=””>
 //        name “front” or “back” default is “front”
@@ -140,7 +140,7 @@ sealed class XMLCardTemplate {
 //										“h”: approximately 30% of codewords can be restored. Level H offers the maximum
 //											achievable reliability
 //	<barcode>data</barcode> data specifies the barcode to print
-	data class Barcode(val order_id: Int?, val field: String, val font_id: Int, val width: Int, val height: Int, val x: Int, val y: Int, val rotation: Double, val code: CODE, val encoding_name: String, val quiet_zone_width: Double, val show_text: BOOLEAN, val correction_level: Double?, val minColumns: Int?, val columns: Int?, val  minRows: Int?, val rows: Int?, val compact: BOOLEAN?, val compactionMode: COMPACTIONMODE?, val error_correction_level: ECORRECTIONLVL?, val data: String): Element() // TODO("find out how to set in tag references and not like as attribute")
+	data class Barcode(val order_id: Int?, val field: String?, val font_id: Int, val width: Int, val height: Int, val x: Int, val y: Int, val rotation: Double, val code: CODE, val encoding_name: String, val quiet_zone_width: Double, val show_text: BOOLEAN, val correction_level: Double?, val minColumns: Int?, val columns: Int?, val  minRows: Int?, val rows: Int?, val compact: BOOLEAN?, val compactionMode: COMPACTIONMODE?, val error_correction_level: ECORRECTIONLVL?, val data: String): Element() // TODO("find out how to set in tag references and not like as attribute")
 
 //	<line order_id="" x1="" y1="" x2="" y2="" thickness="" color="" />
 //		order_id processing order, 1 thru x with 1 being the bottom layer

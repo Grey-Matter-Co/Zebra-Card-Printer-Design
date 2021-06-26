@@ -71,7 +71,7 @@ object XMLMapper {
 					rgba2rgb(elem.backgroundColor))
 			}
 			is XMLCardDesign.Element.XamlTextElement -> {
-				val currentFont = Font(fontList.size, elem.fontFamily, elem.fontSize*PPM, BOOLEAN.valueOf(elem.fontWeight.contains("Bold")), BOOLEAN.valueOf(elem.fontWeight.contains("Italic")), BOOLEAN.valueOf(elem.fontWeight.contains("Underline")))
+				val currentFont = Font(fontList.size, elem.fontFamily, (elem.fontSize*PPM).roundToInt(), BOOLEAN.valueOf(elem.fontWeight.contains("Bold")), BOOLEAN.valueOf(elem.fontWeight.contains("Italic")), BOOLEAN.valueOf(elem.fontWeight.contains("Underline")))
 				if (null == fontList.find {font -> (font.name == currentFont.name) and (font.size == currentFont.size) and (font.bold == currentFont.bold) and (font.italic == currentFont.italic) and  (font.underline == currentFont.underline) })
 					fontList.add(currentFont)
 

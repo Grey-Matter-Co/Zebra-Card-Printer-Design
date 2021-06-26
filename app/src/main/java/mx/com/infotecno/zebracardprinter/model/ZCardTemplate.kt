@@ -1,15 +1,27 @@
 package mx.com.infotecno.zebracardprinter.model
 
+import android.graphics.Bitmap
 import android.net.Uri
 import mx.com.infotecno.zebracardprinter.R
 
 class ZCardTemplate (val idBackground: Int) {
+    val id: Long = 0
     var name: String = ""
     var uri: Uri = Uri.EMPTY
-    val id: Long = 0
+    var frontPreview: Bitmap? = null
 
     constructor(templateName: String) : this(R.drawable.card_mamalona) {
         name = templateName
+    }
+
+    override fun toString(): String {
+        return "ZCardTemplate (" +
+                "id: $id, " +
+                "name: $name, " +
+                "uri: $uri, " +
+                "idBackground: $idBackground, " +
+                "frontPreview: $frontPreview " +
+                ")"
     }
 
     companion object
