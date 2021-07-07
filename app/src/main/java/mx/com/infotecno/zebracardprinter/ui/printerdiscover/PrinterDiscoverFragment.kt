@@ -12,6 +12,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.navigation.findNavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import com.zebra.sdk.printer.discovery.DiscoveredPrinter
@@ -65,10 +66,9 @@ class PrinterDiscoverFragment : Fragment(), CoroutineScope {
                         }
                     }
                     SelectedPrinterManager.setSelectedPrinter(clickedPrinter)
-//                    requireActivity().supportFragmentManager.popBackStackImmediate()
-                    NavHostFragment.findNavController(requireParentFragment()).navigate(
-                        PrinterDiscoverFragmentDirections.actionPrinterDiscoverFragmentToMainFragment()
-                    )
+
+                    binding.recViewDiscoveredPrinters.findNavController()
+                        .navigate(R.id.action_printerDiscoverFragment_to_mainFragment)
                 }
             }
         ).apply { this.context = requireContext() }
@@ -96,10 +96,8 @@ class PrinterDiscoverFragment : Fragment(), CoroutineScope {
                     if (device != null && UsbDiscoverer.isZebraUsbDevice(device))
                         if (permissionGranted) {
                             SelectedPrinterManager.setSelectedPrinter(DiscoveredPrinterUsb(device.deviceName, UsbHelper.getUsbManager(requireContext()), device))
-//                            requireActivity().supportFragmentManager.popBackStackImmediate()
-                            NavHostFragment.findNavController(requireParentFragment()).navigate(
-                                PrinterDiscoverFragmentDirections.actionPrinterDiscoverFragmentToMainFragment()
-                            )
+                            binding.recViewDiscoveredPrinters.findNavController()
+                                .navigate(R.id.action_printerDiscoverFragment_to_mainFragment)
                         }
                         else
                             DialogHelper.showErrorDialog(requireActivity(), getString(R.string.msg_warning_usb_permissions_denied))
@@ -204,10 +202,8 @@ class PrinterDiscoverFragment : Fragment(), CoroutineScope {
                             DialogHelper.showErrorDialog(requireActivity(), getString(R.string.error_manually_connecting_message, exception.message))
                         else if (printer != null) {
                             SelectedPrinterManager.setSelectedPrinter(printer)
-                            NavHostFragment.findNavController(requireParentFragment()).navigate(
-                                PrinterDiscoverFragmentDirections.actionPrinterDiscoverFragmentToMainFragment()
-                            )
-//                            requireActivity().supportFragmentManager.popBackStackImmediate()
+                            binding.recViewDiscoveredPrinters.findNavController()
+                                .navigate(R.id.action_printerDiscoverFragment_to_mainFragment)
                         }
                     }
                 })

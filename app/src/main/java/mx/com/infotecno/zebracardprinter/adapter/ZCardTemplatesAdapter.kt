@@ -59,12 +59,11 @@ class ZCardTemplatesAdapter(val clickListener: (ZCardTemplate, Int) -> Unit, val
         = currentList[position].id
 
     private class DiffCallback : DiffUtil.ItemCallback<ZCardTemplate>() {
-        override fun areItemsTheSame(oldItem: ZCardTemplate, newItem: ZCardTemplate): Boolean
-            = oldItem.name == newItem.name
+        override fun areItemsTheSame(oldItem: ZCardTemplate, newItem: ZCardTemplate): Boolean =
+            (oldItem.name==newItem.name) and (oldItem.templateData==newItem.templateData) and (oldItem.idBackground==newItem.idBackground)
 
-        @SuppressLint("DiffUtilEquals")
-        override fun areContentsTheSame(oldItem: ZCardTemplate, newItem: ZCardTemplate): Boolean
-            = oldItem == newItem
+        override fun areContentsTheSame(oldItem: ZCardTemplate, newItem: ZCardTemplate): Boolean =
+            (oldItem.templateData==newItem.templateData) and (oldItem.idBackground == newItem.idBackground)
     }
 
     // get params from card layout

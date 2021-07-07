@@ -18,8 +18,9 @@ import androidx.lifecycle.viewModelScope
 import com.zebra.sdk.common.card.exceptions.ZebraCardException
 import com.zebra.sdk.common.card.template.ZebraCardTemplate
 import kotlinx.coroutines.launch
-import mx.com.infotecno.zebracardprinter.action.DiscoveredPrinterAction
-import mx.com.infotecno.zebracardprinter.action.ZCardTemplateAction
+import mx.com.infotecno.zebracardprinter.MainActivity.Companion.TEMPLATEFILEDIRECTORY
+import mx.com.infotecno.zebracardprinter.MainActivity.Companion.TEMPLATEIMAGEFILEDIRECTORY
+import mx.com.infotecno.zebracardprinter.action.ZCardTemplatesListAction
 import mx.com.infotecno.zebracardprinter.model.ZCardTemplate
 import mx.com.infotecno.zebracardprinter.util.DialogHelper
 import mx.com.infotecno.zebracardprinter.util.FileHelper
@@ -28,32 +29,38 @@ import org.apache.commons.io.FilenameUtils
 import org.apache.commons.io.IOUtils
 import java.io.File
 import java.io.IOException
+import java.util.*
 
 class MainViewModel(application: Application) : AndroidViewModel(application) {
-    companion object {
-        val TEMPLATEFILEDIRECTORY = File.separator + "TemplateData" + File.separator + "TemplateFiles"
-        val TEMPLATEIMAGEFILEDIRECTORY = File.separator + "TemplateData" + File.separator + "TemplateFiles"
-    }
-    private val _actions = MutableLiveData<ZCardTemplateAction>()    // This will be operated and changed
-    val action: LiveData<ZCardTemplateAction> get() = _actions      // This only returns unmodified list
+    private val _actions = MutableLiveData<ZCardTemplatesListAction>()    // This will be operated and changed
+    val action: LiveData<ZCardTemplatesListAction> get() = _actions      // This only returns unmodified list
 
     private var contentObserver: ContentObserver? = null
 
     private var zebraCardTemplate: ZebraCardTemplate = ZebraCardTemplate(getApplication(), null).apply {
+        Log.d("EMBY", "zebraCardTemplate: ${getApplication<Application>().filesDir.path+ File.separator + TEMPLATEFILEDIRECTORY}")
         this.setTemplateFileDirectory(getApplication<Application>().filesDir.path+ File.separator + TEMPLATEFILEDIRECTORY)
         this.setTemplateImageFileDirectory(getApplication<Application>().filesDir.path+ File.separator + TEMPLATEIMAGEFILEDIRECTORY)
     }
 
-    fun loadTemplates() {
+    fun loadTemplates(newTemplates: List<String>) {
         viewModelScope.launch {
             // Query all saved templates
-            val templateList = FileHelper.queryTemplatesOnDevice(getApplication<Application>(), zebraCardTemplate)
-            _actions.postValue(ZCardTemplateAction.TemplatesChanged(templateList))
+            var templateList = FileHelper.queryTemplatesOnDevice(getApplication<Application>(), zebraCardTemplate, newTemplates)
+            _actions.postValue(ZCardTemplatesListAction.TemplatesChanged(templateList))
 
             if (contentObserver == null)
                 contentObserver = getApplication<Application>().contentResolver.registerObserver(MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
-                    { loadTemplates() }
-
+                    { loadTemplates(emptyList()) }
+            else if (newTemplates.isNotEmpty())
+                Timer("waiting for writting", false).schedule(object : TimerTask() {
+                    override fun run() {
+                        viewModelScope.launch {
+                            templateList = FileHelper.queryTemplatesOnDevice(getApplication<Application>(), zebraCardTemplate, emptyList())
+                            _actions.postValue(ZCardTemplatesListAction.TemplatesChanged(templateList))
+                        }
+                    }
+                }, 1000)
         }
     }
 
@@ -73,16 +80,16 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun  saveTemplate(activity: Activity, templateName: String, xml: String, frontpreview: Bitmap, fontFilesList: List<Pair<String, ByteArray>>, imageFilesList: List<Pair<String, Bitmap>>) {
+    fun saveTemplate(activity: Activity, templateName: String, xmlTemplate: String, jsonData: String, frontpreview: Bitmap, fontFilesList: List<Pair<String, ByteArray>>, imageFilesList: List<Pair<String, Bitmap>>) {
+        val storedTemplateNames: List<String> = zebraCardTemplate.allTemplateNames
         viewModelScope.launch {
             try {
                 //val templateName = FilenameUtils.removeExtension(UriHelper.getFilename(getApplication<Application>(), uri)!!)
-                val storedTemplateNames: List<String> = zebraCardTemplate.allTemplateNames
 
                 if (storedTemplateNames.contains(templateName))
                     zebraCardTemplate.deleteTemplate(templateName)
-                zebraCardTemplate.saveTemplate(templateName, xml)
-                FileHelper.saveTemplateResources(getApplication<Application>(), templateName, frontpreview, fontFilesList, imageFilesList)
+                zebraCardTemplate.saveTemplate(templateName, xmlTemplate)
+                FileHelper.saveTemplateResources(getApplication<Application>(), templateName, jsonData, frontpreview, fontFilesList, imageFilesList)
             }
             catch (e: Exception) {
                 val errorMessage = if (e is ZebraCardException) "invalid template file selected"
@@ -96,17 +103,17 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         zebraCardTemplate.allTemplateNames.contains(templateName)
 
     fun requestStoragePermissions()
-        = _actions.postValue(ZCardTemplateAction.StoragePermissionsRequested)
+        = _actions.postValue(ZCardTemplatesListAction.StoragePermissionsRequested)
 
     fun requestUSBPermission(usbManager: UsbManager, device: UsbDevice)
-        = _actions.postValue(ZCardTemplateAction.USBPermissionsRequested(usbManager, device))
+        = _actions.postValue(ZCardTemplatesListAction.USBPermissionsRequested(usbManager, device))
 
     fun deleteTemplates(templates: List<ZCardTemplate>) {
         viewModelScope.launch {
             for (template in templates) {
                 val completed = FileHelper.deleteTemplate(getApplication<Application>(), zebraCardTemplate, template)
                 if (completed)
-                    _actions.postValue(ZCardTemplateAction.TemplatesDeleted(FileHelper.queryTemplatesOnDevice(getApplication<Application>(), zebraCardTemplate)))
+                    _actions.postValue(ZCardTemplatesListAction.TemplatesDeleted(FileHelper.queryTemplatesOnDevice(getApplication<Application>(), zebraCardTemplate, emptyList())))
             }
         }
     }

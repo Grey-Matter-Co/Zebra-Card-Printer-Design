@@ -12,6 +12,9 @@
         <action
             android:id="@+id/action_mainFragment_to_printerDiscoverFragment"
             app:destination="@id/printerDiscoverFragment" />
+        <action
+            android:id="@+id/action_mainFragment_to_printTemplateFragment"
+            app:destination="@id/printTemplateFragment"/>
     </fragment>
     <fragment
         android:id="@+id/printerDiscoverFragment"
@@ -19,11 +22,15 @@
         android:label="PrinterDiscoverFragment">
         <action
             android:id="@+id/action_printerDiscoverFragment_to_mainFragment"
-            app:destination="@id/mainFragment">
-            <argument
-                android:name="isPrinterSelected"
-                android:defaultValue="false"
-                app:argType="boolean" />
-        </action>
+            app:destination="@id/mainFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/printTemplateFragment"
+        android:name="mx.com.infotecno.zebracardprinter.ui.printtemplate.PrintTemplateFragment"
+        android:label="printtemplate_fragment"
+        tools:layout="@layout/printtemplate_fragment" >
+        <argument
+            android:name="template"
+            app:argType="mx.com.infotecno.zebracardprinter.model.ZCardTemplate" />
     </fragment>
 </navigation>

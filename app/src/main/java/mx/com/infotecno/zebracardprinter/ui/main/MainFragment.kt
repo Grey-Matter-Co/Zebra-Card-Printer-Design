@@ -12,17 +12,16 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.hardware.usb.UsbDevice
 import android.hardware.usb.UsbManager
+import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.view.*
-import android.widget.ImageView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.res.ResourcesCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.observe
-import androidx.navigation.fragment.NavHostFragment
+import androidx.navigation.findNavController
 import androidx.recyclerview.selection.SelectionPredicates
 import androidx.recyclerview.selection.SelectionTracker
 import androidx.recyclerview.selection.StorageStrategy
@@ -37,7 +36,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import mx.com.infotecno.zebracardprinter.R
-import mx.com.infotecno.zebracardprinter.action.ZCardTemplateAction
+import mx.com.infotecno.zebracardprinter.action.ZCardTemplatesListAction
 import mx.com.infotecno.zebracardprinter.adapter.ZCardTemplatesAdapter
 import mx.com.infotecno.zebracardprinter.databinding.MainFragmentBinding
 import mx.com.infotecno.zebracardprinter.discovery.PrinterStatusUpdateTask
@@ -47,10 +46,10 @@ import mx.com.infotecno.zebracardprinter.util.*
 import java.io.ByteArrayInputStream
 import java.io.IOException
 import java.io.InputStream
+import java.util.*
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
 import kotlin.coroutines.CoroutineContext
-import kotlin.jvm.Throws
 import mx.com.infotecno.zebracardprinter.util.ExecutingDevicesHelper as EDHelper
 
 
@@ -59,7 +58,6 @@ class MainFragment : Fragment(), ActionMode.Callback, CoroutineScope {
 		private const val REQUEST_START_ACTIVITY = 3001
 		private const val REQUEST_SELECT_TEMPLATE = 3002
 		private const val REQUEST_PERMISSION_MEDIA = 100
-		private const val REQUEST_SELECT_TEMPLATE_ZIP = 3003
 	}
 
 	private val viewModel: MainViewModel by viewModels()
@@ -69,6 +67,7 @@ class MainFragment : Fragment(), ActionMode.Callback, CoroutineScope {
 
 	private lateinit var binding: MainFragmentBinding
 	private lateinit var tracker: SelectionTracker<String>
+	private var newTemplates = arrayListOf<String>()
 
 	//For Coroutines
 	private var jobPrinterStatusUpdate : Job = Job()
@@ -89,26 +88,15 @@ class MainFragment : Fragment(), ActionMode.Callback, CoroutineScope {
 									createTemplateFileSelectIntent(),
 									REQUEST_SELECT_TEMPLATE
 								)
-								1 -> {
-									startActivityForResult(
-										createTemplateFileSelectIntentZIP(),
-										REQUEST_SELECT_TEMPLATE_ZIP
-									)
-//									val entries: List<Entry> = StackOverflowXmlParser()
-//										.parse(ByteArrayInputStream(content2.toByteArray(StandardCharsets.UTF_8)))
-//									Log.d("Emby Result", "Size is ${entries}")
-//									Toast.makeText(context, "Option Unavailable", Toast.LENGTH_SHORT).show()
-								}
+								1 -> Toast.makeText(context, "Option Unavailable", Toast.LENGTH_SHORT).show()
 							}
 						}
 					}
 					//				1 -> startActivityForResult(Intent(context, Send2PrintActivity::class.java ), REQUEST_START_ACTIVITY)
-					else -> Toast.makeText(
-						context,
-						"[$clickedTemplatePosition] ${clickedTemplate.name} \n Option Unavailable",
-						Toast.LENGTH_SHORT
-					)
-						.show()
+					else ->  {
+						Toast.makeText(context, "[$clickedTemplatePosition] ${clickedTemplate.name} \n Option Unavailable", Toast.LENGTH_SHORT).show()
+						binding.recViewZcards.findNavController().navigate(MainFragmentDirections.actionMainFragmentToPrintTemplateFragment(clickedTemplate))
+					}
 					//startActivity(Intent(context, FieldsCaptureActivity::class.java)
 					//.putExtra("zcardSelected", -1))
 				}
@@ -167,29 +155,14 @@ class MainFragment : Fragment(), ActionMode.Callback, CoroutineScope {
 					SelectedPrinterManager.setSelectedPrinter(null)
 					val usbManager: UsbManager = UsbHelper.getUsbManager(requireContext())
 					if (!usbManager.hasPermission(device)) {
-						ProgressOverlayHelper.showProgressOverlay(
-							binding.bannerProgContainer.bannerProgTxt,
-							binding.bannerProgContainer.bannerProg,
-							getString(
-								R.string.msg_waiting_requesting_usb_permission
-							)
-						)
-						requireActivity().window.navigationBarColor = ResourcesCompat.getColor(
-							resources,
-							R.color.grey_5,
-							null
-						)
+						ProgressOverlayHelper.showProgressOverlay(binding.bannerProgContainer.bannerProgTxt, binding.bannerProgContainer.bannerProg, getString(R.string.msg_waiting_requesting_usb_permission))
+						requireActivity().window.navigationBarColor = ResourcesCompat.getColor(resources, R.color.grey_5, null)
 						viewModel.requestUSBPermission(usbManager, device)
 //						UsbHelper.requestUsbPermission(requireContext(), usbManager, device)
 					}
 					else {
-						SelectedPrinterManager.setSelectedPrinter(
-							DiscoveredPrinterUsb(
-								device.deviceName, UsbHelper.getUsbManager(
-									requireContext()
-								), device
-							)
-						)
+						SelectedPrinterManager
+							.setSelectedPrinter(DiscoveredPrinterUsb(device.deviceName, UsbHelper.getUsbManager(requireContext()), device))
 						refreshSelectedPrinterBanner()
 					}
 				}
@@ -209,12 +182,8 @@ class MainFragment : Fragment(), ActionMode.Callback, CoroutineScope {
 		}
 	}
 
-	override fun onCreateView(
-		inflater: LayoutInflater,
-		container: ViewGroup?,
-		savedInstanceState: Bundle?
-	): View {
-		viewModel.action.observe(viewLifecycleOwner) { handleAction(it) }
+	override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+		viewModel.action.observe(viewLifecycleOwner, { action -> handleAction(action) })
 		binding = MainFragmentBinding.inflate(inflater)
 		binding.recViewZcards.adapter = zCardAdapter
 		return binding.root
@@ -236,7 +205,32 @@ class MainFragment : Fragment(), ActionMode.Callback, CoroutineScope {
 					if (resultCode == Activity.RESULT_OK) {
 						val clipData = data.clipData
 						if (clipData == null) // Handle one file selected
-							viewModel.saveTemplate(requireActivity(), data.data!!)
+							if (UriHelper.isXmlFile(requireContext(), data.data!!))
+								viewModel.saveTemplate(requireActivity(), data.data!!)
+							else
+								loadzip(requireActivity().contentResolver.openInputStream(data.data!!)!!).let {
+									if (it != null)
+										newTemplates.add(it)
+								}
+
+						else { // Handle multiple files selected
+							// Handle multiple files selected
+							val xmlFiles: MutableList<Uri> = ArrayList()
+							val zipFiles: MutableList<Uri> = ArrayList()
+
+							for (i in 0 until clipData.itemCount) {
+								val uri = clipData.getItemAt(i).uri
+								if (UriHelper.isXmlFile(requireContext(), uri))
+									xmlFiles.add(uri)
+								else
+									zipFiles.add(uri)
+							}
+							for (uri in xmlFiles)
+								viewModel.saveTemplate(requireActivity(), uri)
+
+							for (uri in zipFiles)
+								newTemplates.add(loadzip(requireActivity().contentResolver.openInputStream(uri)!!)!!)
+						}
 					}
 				REQUEST_START_ACTIVITY ->
 					if (resultCode == AppCompatActivity.RESULT_OK) {
@@ -301,10 +295,6 @@ class MainFragment : Fragment(), ActionMode.Callback, CoroutineScope {
 //								getString(R.string.storage_permissions_request_enable_message)
 //							)
 //					}
-				REQUEST_SELECT_TEMPLATE_ZIP -> if (resultCode == AppCompatActivity.RESULT_OK) {
-					val inputStream = requireActivity().contentResolver.openInputStream(data.data!!)
-					loadzip(inputStream!!)
-				}
 			}
 	}
 
@@ -315,7 +305,7 @@ class MainFragment : Fragment(), ActionMode.Callback, CoroutineScope {
 				viewModel.requestStoragePermissions()
 			return
 		}
-		viewModel.loadTemplates()
+		viewModel.loadTemplates(newTemplates)
 		registerReceivers()
 		refreshSelectedPrinterBanner()
 	}
@@ -347,7 +337,7 @@ class MainFragment : Fragment(), ActionMode.Callback, CoroutineScope {
 						permissionDenied = true
 						Snackbar.make(
 							binding.root,
-							R.string.missing_permission_media,
+							R.string.missing_permission,
 							Snackbar.LENGTH_SHORT
 						).show()
 					}
@@ -368,18 +358,13 @@ class MainFragment : Fragment(), ActionMode.Callback, CoroutineScope {
 
 		binding.bannerPrnSelContainer.bannerPrnSel.setOnClickListener { promptDisconnectPrinter() }
 		binding.bannerNoPrnSelContainer.bannerNoPrnSel.setOnClickListener {
-//			NavHostFragment.findNavController(requireParentFragment()).navigate(
-//				MainFragmentDirections.actionMainFragmentToPrinterDiscoverFragment()
-//			)
-			NavHostFragment.findNavController(requireParentFragment()).navigate(R.id.action_mainFragment_to_printerDiscoverFragment)
+			it.findNavController().navigate(R.id.action_mainFragment_to_printerDiscoverFragment)
 		}
 
 		tracker = SelectionTracker.Builder(
 			"imagesSelection",
 			binding.recViewZcards,
-			ZCardTemplateKeyProvider(
-				zCardAdapter
-			),
+			ZCardTemplateKeyProvider(zCardAdapter),
 			ZCardTemplateDetailsLookup(binding.recViewZcards),
 			StorageStrategy.createStringStorage()
 		)
@@ -486,28 +471,22 @@ class MainFragment : Fragment(), ActionMode.Callback, CoroutineScope {
 	/*	END ActionMode.Callback Implements	*/
 
 	/*	Handle changes on ZCardTemplates List	*/
-	private fun handleAction(action: ZCardTemplateAction) {
+	private fun handleAction(action: ZCardTemplatesListAction) {
 		when (action) {
-			is ZCardTemplateAction.TemplatesChanged -> {
+			is ZCardTemplatesListAction.TemplatesChanged -> {
 				zCardAdapter.submitList(action.templates)
+				newTemplates.clear()
 
 				if (action.templates.size <= 1)
-					Snackbar.make(
-						binding.root,
-						"No hay plantillas cargadas aún",
-						Snackbar.LENGTH_SHORT
-					).show()
+					Snackbar.make(binding.root, "No hay plantillas cargadas aún", Snackbar.LENGTH_SHORT).show()
 			}
-			is ZCardTemplateAction.TemplatesDeleted -> zCardAdapter.submitList(action.templates)
-			is ZCardTemplateAction.USBPermissionsRequested -> UsbHelper.requestUsbPermission(
+			is ZCardTemplatesListAction.TemplatesDeleted -> zCardAdapter.submitList(action.templates)
+			is ZCardTemplatesListAction.USBPermissionsRequested -> UsbHelper.requestUsbPermission(
 				requireContext(),
 				action.usbManager,
 				action.device
 			)
-			ZCardTemplateAction.StoragePermissionsRequested -> EDHelper.requestStoragePermission(
-				this,
-				REQUEST_PERMISSION_MEDIA
-			)
+			ZCardTemplatesListAction.StoragePermissionsRequested -> EDHelper.requestStoragePermission(this, REQUEST_PERMISSION_MEDIA)
 		}
 	}
 
@@ -536,11 +515,11 @@ class MainFragment : Fragment(), ActionMode.Callback, CoroutineScope {
 	}
 
 	private fun createTemplateFileSelectIntent(): Intent? {
-		val mimeTypes = arrayOf("text/xml")
+		val mimeTypes = arrayOf("text/xml", "application/zip")
 		val intent = Intent(Intent.ACTION_GET_CONTENT)
 			.setType("*/*")
 			.putExtra(Intent.EXTRA_MIME_TYPES, mimeTypes)
-			.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, false)
+			.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
 		return Intent.createChooser(
 			intent, getString(R.string.select_template_file)
 		)
@@ -558,58 +537,58 @@ class MainFragment : Fragment(), ActionMode.Callback, CoroutineScope {
 	}
 
 	@Throws(IOException::class)
-	private fun loadzip(inputStream: InputStream) {
-		var alreadyExists: Boolean = false
-
+	private fun loadzip(inputStream: InputStream): String? {
 		var frontpreview: Bitmap? = null
-		var xml = ""
+		var xmlTemplate = ""
+		var jsonData = ""
 		var templateName = ""
 		val fontFilesList = mutableListOf<Pair<String, ByteArray>>()
 		val imageFilesList = mutableListOf<Pair<String, Bitmap>>()
 
+		var validZip = false
 
 		val zipIs = ZipInputStream(inputStream)
 		var ze: ZipEntry?
 
-
-		while ((zipIs.nextEntry.also { ze = it } != null) and !alreadyExists) {
+		while (zipIs.nextEntry.also { ze = it } != null) {
 			if (ze != null) {
-				Log.d("EMBY", "loadzip: ${ze!!.name.toLowerCase().substringAfterLast("\\")}")
-
-				with(ze!!.name.toLowerCase().substringAfterLast("\\")) { when {
-					contains(".scd") ->  {
+				val fileName = ze!!.name.toLowerCase().substringAfterLast("\\")
+				when {
+					fileName.contains(".scd") ->  {
+						validZip = true
 						templateName = ze!!.name.substringBeforeLast(".")
-						alreadyExists = viewModel.alreadyExistsTemplate(templateName)
-						if (!alreadyExists) {
-							val (template,fields) = XMLMapper.map(XMLDecoder.parse(ByteArrayInputStream(zipIs.readBytes())))
-							xml = XMLEncoder.parse(template)
-						} else {}
+						if (viewModel.alreadyExistsTemplate(templateName))
+							break
+						XMLMapper.map(XMLDecoder.parseCardDesignProject(ByteArrayInputStream(zipIs.readBytes()))).also { (cardTemplate, fields) ->
+							xmlTemplate = XMLEncoder.parse(cardTemplate)
+							jsonData = XMLEncoder.parseFields(fields)
+						}
+
 					}
-					equals("frontpreview.png") -> {
-						val bytes = zipIs.readBytes()
-						frontpreview = BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
-						binding.recViewZcards.findViewById<ImageView>(R.id.card_bg).setImageBitmap(frontpreview)
-					}
-					contains(".ttf") -> {
-						val bytes = zipIs.readBytes()
-						fontFilesList.add(Pair(this, bytes))
-					}
-					contains(".png") or contains("jpg") or contains("jpeg") -> {
-						val bytes = zipIs.readBytes()
-						imageFilesList.add(Pair(this, BitmapFactory.decodeByteArray(bytes, 0, bytes.size)))
-					}
+					fileName == "frontpreview.png" ->
+						zipIs.readBytes().also {
+							frontpreview = BitmapFactory.decodeByteArray(it, 0, it.size)
+						}
+					fileName.contains(".ttf") ->
+						fontFilesList.add(Pair(fileName, zipIs.readBytes()))
+					fileName.contains(".png") or fileName.contains("jpg") or fileName.contains("jpeg") ->
+						zipIs.readBytes().also {
+							imageFilesList.add(Pair(fileName, BitmapFactory.decodeByteArray(it, 0, it.size)))
+						}
 					else -> Log.e("EMBY", "loadzip: UNKOWN FILES" )
-				}}
+				}
 			}
 		}
-
-		if (alreadyExists)
+		if (!validZip)
+			DialogHelper.showErrorDialog(requireActivity(), getString(R.string.msg_error_invalid_zip))
+		else if (xmlTemplate.isEmpty()) {
 			DialogHelper.showErrorDialog(requireActivity(), getString(R.string.msg_error_template_already_exists))
-		else {
-			viewModel.saveTemplate(requireActivity(), templateName, xml, frontpreview!!, fontFilesList, imageFilesList)
 		}
+		else
+			viewModel.saveTemplate(requireActivity(), templateName, xmlTemplate, jsonData, frontpreview!!, fontFilesList, imageFilesList)
+
 
 		zipIs.close()
-
+		return if (xmlTemplate.isEmpty()) null else templateName
 	}
 }

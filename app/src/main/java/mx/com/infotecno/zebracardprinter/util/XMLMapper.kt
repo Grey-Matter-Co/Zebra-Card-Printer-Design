@@ -5,22 +5,25 @@ import mx.com.infotecno.zebracardprinter.model.XMLCardDesign
 import mx.com.infotecno.zebracardprinter.model.XMLCardDesign.*
 import mx.com.infotecno.zebracardprinter.model.XMLCardTemplate
 import mx.com.infotecno.zebracardprinter.model.XMLCardTemplate.*
+import mx.com.infotecno.zebracardprinter.model.XMLCardTemplate.Element.*
+import java.util.*
 import kotlin.math.roundToInt
 
 object XMLMapper {
 	private const val PPM = 3.0 // PPM  Pixel per Mil (inch/100)
 	private val fieldRegex = Regex("""\{([\w\s]+)\}""")
-	private val mutableFields = mutableListOf<String>()
+	private val mutableFields = mutableMapOf<String, String>()
+
 	private val fontList = mutableListOf<Font>()
 
-	fun map(xmlCardDesign: CardDesignProject): Pair<Template, List<String>> =
+	fun map(xmlCardDesign: CardDesignProject): Pair<Template, Map<String,String>> =
 		Pair(mapTemplate(xmlCardDesign), mutableFields)
 
 	private fun mapTemplate(cardDesignProject: CardDesignProject): Template {
 
 		with (cardDesignProject) {
 			val sides = mapSides(this)
-			return Template(name, 2, 30, BOOLEAN.Yes, SOURCE.Autodetect, DESTINATION.Eject,
+			return Template(name, 2, 30, BOOLEAN.yes, SOURCE.autodetect, DESTINATION.eject,
 				mapFonts(),
 				sides,
 				if(hasMagstripe) mapMagData() else null)
@@ -36,11 +39,11 @@ object XMLMapper {
 
 			if (frontDocument!!.elements.isNotEmpty())
 				sides.add(
-					Side(SIDETYPE.Front, ORIENTATION.valueOf(frontRibbon!!.orientation),
+					Side(SIDETYPE.front, ORIENTATION.valueOf(frontRibbon!!.orientation.toLowerCase(Locale.ENGLISH)),
 						printTypes = mapPrintTypes(frontDocument , frontRibbon.ribbonType)))
 			if (backDocument!!.elements.isNotEmpty())
 				sides.add(
-					Side(SIDETYPE.Back, ORIENTATION.valueOf(backRibbon!!.orientation),
+					Side(SIDETYPE.back, ORIENTATION.valueOf(backRibbon!!.orientation.toLowerCase(Locale.ENGLISH)),
 						printTypes = mapPrintTypes(backDocument, backRibbon.ribbonType)))
 		}
 		return sides
@@ -56,7 +59,7 @@ object XMLMapper {
 			}
 		}
 		backgrounds.forEach {bkgd ->
-			printTypes.add(PrintType(PRINTYPE.valueOf(ribbonType), elements = elementRGB
+			printTypes.add(PrintType(PRINTYPE.valueOf(ribbonType.toLowerCase(Locale.ROOT)), elements = elementRGB
 				.filter { (_, rgb) -> rgb == bkgd }
 				.map { (e, _) -> e }))
 		}
@@ -76,18 +79,18 @@ object XMLMapper {
 					fontList.add(currentFont)
 
 				if (hasFields(elem.text)) {
-					getFields(elem.text).forEach { field -> mutableFields.add(field) }
+					getFields(elem.text).forEach { field -> mutableFields[field] = "" }
 
-					Pair(Text(null, elem.text, currentFont.id, (elem.width*PPM).roundToInt(), (elem.height*PPM).roundToInt(), (elem.left*PPM).roundToInt(), (elem.top*PPM).roundToInt(), elem.textColor, elem.angle, HALINGMENT.valueOf(elem.alignmentH), VALINGMENT.valueOf(elem.alignmentV), if (elem.wrapText) BOOLEAN.Yes else BOOLEAN.No, null),
+					Pair(Text(null, elem.text, currentFont.id, (elem.width*PPM).roundToInt(), (elem.height*PPM).roundToInt(), (elem.left*PPM).roundToInt(), (elem.top*PPM).roundToInt(), elem.textColor, elem.angle, HALINGMENT.valueOf(elem.alignmentH.toLowerCase(Locale.ENGLISH)), VALINGMENT.valueOf(elem.alignmentV.toLowerCase(Locale.ENGLISH)), if (elem.wrapText) BOOLEAN.yes else BOOLEAN.no, null),
 						rgba2rgb(elem.backgroundColor))
 				}
 				else
-					Pair(Text(null, null, currentFont.id, (elem.width*PPM).roundToInt(), (elem.height*PPM).roundToInt(), (elem.left*PPM).roundToInt(), (elem.top*PPM).roundToInt(), elem.textColor, elem.angle, HALINGMENT.valueOf(elem.alignmentH), VALINGMENT.valueOf(elem.alignmentV), if (elem.wrapText) BOOLEAN.Yes else BOOLEAN.No, elem.text),
+					Pair(Text(null, null, currentFont.id, (elem.width*PPM).roundToInt(), (elem.height*PPM).roundToInt(), (elem.left*PPM).roundToInt(), (elem.top*PPM).roundToInt(), elem.textColor, elem.angle, HALINGMENT.valueOf(elem.alignmentH.toLowerCase(Locale.ENGLISH)), VALINGMENT.valueOf(elem.alignmentV.toLowerCase(Locale.ENGLISH)), if (elem.wrapText) BOOLEAN.yes else BOOLEAN.no, elem.text),
 						rgba2rgb(elem.backgroundColor))
 			}
 			is XMLCardDesign.Element.XamlPassportPhotoElement -> {
 				val newKey = genKey("photo")
-				mutableFields.add(newKey)
+				mutableFields[newKey] = ""
 				Pair(Graphic(null, "{$newKey}", GRAPHICFORMAT.jpeg, elem.transparency, (elem.height*PPM).roundToInt(), (elem.width*PPM).roundToInt(), elem.left.roundToInt(), elem.top.roundToInt(), elem.angle, reference = null),
 					rgba2rgb(elem.backgroundColor))
 			}
@@ -109,7 +112,7 @@ object XMLMapper {
 
 	private fun genKey(prefix: String): String {
 		var i = 1
-		mutableFields.forEach { field ->
+		mutableFields.forEach { field, value ->
 			if (field.contains(prefix))
 				i++
 		}

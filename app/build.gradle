@@ -1,7 +1,7 @@
 plugins {
     id 'com.android.application'
     id 'kotlin-android'
-    id 'androidx.navigation.safeargs'
+    id("androidx.navigation.safeargs.kotlin")
 //    adding plugin improve coding with ViewBinding'
 }
 //apply plugin: ""
@@ -57,11 +57,7 @@ dependencies {
 //  For FragmentContainerView y Navigation Component
     implementation 'androidx.navigation:navigation-fragment-ktx:2.3.4'
     implementation "androidx.navigation:navigation-ui-ktx:2.3.4"
-    implementation('org.simpleframework:simple-xml:2.7.+'){
-        exclude module: 'stax'
-        exclude module: 'stax-api'
-        exclude module: 'xpp3'
-    }
+    implementation 'com.google.code.gson:gson:2.8.6'
 
 //  For Zebra Libraries
     implementation fileTree(dir: 'libs', include: ['*.jar'])

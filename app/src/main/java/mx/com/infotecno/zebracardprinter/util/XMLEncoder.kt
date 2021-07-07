@@ -1,12 +1,11 @@
 package mx.com.infotecno.zebracardprinter.util
 
-import android.util.Log
 import android.util.Xml
+import com.google.gson.GsonBuilder
 import mx.com.infotecno.zebracardprinter.model.XMLCardTemplate
 import org.xmlpull.v1.XmlSerializer
 import java.io.StringWriter
 
-private const val TAG = "EMBY"
 object XMLEncoder {
 	private val ns: String? = null
 
@@ -16,14 +15,12 @@ object XMLEncoder {
 
 		serializer.setOutput(writer)
 		serializer.startDocument("UTF-8", true)
-		//serializer.setFeature("http://xmlpull.org/v1/doc/features.html#indent-output", true)
 
 		writeTemplate(serializer, template)
 
 		serializer.endDocument()
-		Log.d(TAG, "parse: $writer")
 
-		return writer.toString();
+		return writer.toString()
 	}
 
 	private fun writeTemplate(serializer: XmlSerializer, template: XMLCardTemplate.Template) {
@@ -98,7 +95,7 @@ object XMLEncoder {
 	private fun writeElements(serializer: XmlSerializer, elements: List<XMLCardTemplate.Element>) {
 		elements.forEach { element ->
 			when (element) {
-				is XMLCardTemplate.Graphic -> {
+				is XMLCardTemplate.Element.Graphic -> {
 					serializer.startTag(ns, "graphic")
 
 					if (element.order_id != null)
@@ -119,7 +116,7 @@ object XMLEncoder {
 
 					serializer.endTag(ns, "graphic")
 				}
-				is XMLCardTemplate.Text -> {
+				is XMLCardTemplate.Element.Text -> {
 					serializer.startTag(ns, "text")
 
 					if (element.order_id != null)
@@ -142,7 +139,7 @@ object XMLEncoder {
 
 					serializer.endTag(ns, "text")
 				}
-				is XMLCardTemplate.Barcode -> {
+				is XMLCardTemplate.Element.Barcode -> {
 					serializer.startTag(ns, "barcode")
 
 					if (element.order_id != null)
@@ -173,7 +170,7 @@ object XMLEncoder {
 
 					serializer.endTag(ns, "barcode")
 				}
-				is XMLCardTemplate.Line -> {
+				is XMLCardTemplate.Element.Line -> {
 					serializer.startTag(ns, "line")
 
 					if (element.order_id != null)
@@ -187,7 +184,7 @@ object XMLEncoder {
 
 					serializer.endTag(ns, "line")
 				}
-				is XMLCardTemplate.Ellipse -> {
+				is XMLCardTemplate.Element.Ellipse -> {
 					serializer.startTag(ns, "ellipse")
 
 					if (element.order_id != null)
@@ -202,7 +199,7 @@ object XMLEncoder {
 
 					serializer.endTag(ns, "ellipse")
 				}
-				is XMLCardTemplate.Rectangle -> {
+				is XMLCardTemplate.Element.Rectangle -> {
 					serializer.startTag(ns, "rectangle")
 
 					if (element.order_id != null)
@@ -244,4 +241,6 @@ object XMLEncoder {
 		serializer.endTag(ns, "track")
 	}
 
+	fun parseFields(fields: Map<String, String>): String =
+		GsonBuilder().setPrettyPrinting().create().toJson(fields)
 }
