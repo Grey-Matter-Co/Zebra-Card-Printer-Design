@@ -1,10 +1,5 @@
 package mx.com.infotecno.zebracardprinter.model
 
-import android.os.Build
-import android.os.Parcel
-import android.os.Parcelable
-import androidx.annotation.RequiresApi
-
 sealed class XMLCardTemplate {
 	companion object {
 		const val ROTATION_0 = 0

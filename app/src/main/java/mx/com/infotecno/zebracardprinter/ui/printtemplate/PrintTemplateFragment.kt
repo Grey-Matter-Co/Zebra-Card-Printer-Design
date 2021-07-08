@@ -66,11 +66,6 @@ class PrintTemplateFragment : Fragment() {
 			viewModel.loadTemplate(args.template)
 			fields = args.template.fields.toMutableMap()
 		}
-//		if (!EDHelper.hasCameraPermission(requireContext())) {
-//			if (!permissionDenied)
-//				viewModel.requestCameraPermission()
-//			return
-//		}
 	}
 
 	override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {

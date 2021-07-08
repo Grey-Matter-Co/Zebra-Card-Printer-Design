@@ -92,23 +92,17 @@ class MainFragment : Fragment(), ActionMode.Callback, CoroutineScope {
 						}
 					}
 					//				1 -> startActivityForResult(Intent(context, Send2PrintActivity::class.java ), REQUEST_START_ACTIVITY)
-					else ->  {
-						Toast.makeText(context, "[$clickedTemplatePosition] ${clickedTemplate.name} \n Option Unavailable", Toast.LENGTH_SHORT).show()
-						binding.recViewZcards.findNavController().navigate(MainFragmentDirections.actionMainFragmentToPrintTemplateFragment(clickedTemplate))
-					}
+					else -> binding.recViewZcards.findNavController().navigate(MainFragmentDirections.actionMainFragmentToPrintTemplateFragment(clickedTemplate))
 					//startActivity(Intent(context, FieldsCaptureActivity::class.java)
 					//.putExtra("zcardSelected", -1))
 				}
 			},
 			longClickListener = { clickedTemplatePosition ->
-				when (clickedTemplatePosition) {
-					0 -> {
-						false
-					}
-					else -> {
-						Snackbar.make(binding.root, "Item Clicked", Snackbar.LENGTH_SHORT).show()
-						true
-					}
+				if (clickedTemplatePosition == 0)
+					false
+				else {
+					Snackbar.make(binding.root, "Item Clicked", Snackbar.LENGTH_SHORT).show()
+					true
 				}
 			}
 		)
