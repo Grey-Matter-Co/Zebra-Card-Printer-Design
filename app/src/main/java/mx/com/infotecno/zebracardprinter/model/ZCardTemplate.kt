@@ -10,21 +10,21 @@ class ZCardTemplate (): Parcelable {
     var fields: Map<String, Any> = mapOf()
     var id: Long = 0
     var name: String = "[NO_NAME]"
-    var templateData: XMLCardTemplate.Template? = null
+    var templateUri: Uri = Uri.EMPTY
     var frontPreview: Bitmap? = null
     var idBackground: Int = R.drawable.card_mamalona
 
     constructor(parcel: Parcel) : this() {
         id = parcel.readLong()
         name = parcel.readString()!!
-        templateData = parcel.readParcelable(XMLCardTemplate.Template::class.java.classLoader)!!
+        templateUri = parcel.readParcelable(Uri::class.java.classLoader)!!
         frontPreview = parcel.readParcelable(Bitmap::class.java.classLoader)
         idBackground = parcel.readInt()
     }
 
-    constructor(id: Long, templateName: String, uriXml: XMLCardTemplate.Template) : this() {
+    constructor(id: Long, templateName: String, uriXml: Uri) : this() {
         name = templateName
-        templateData = uriXml
+        templateUri = uriXml
         this.id = id
     }
 
@@ -37,7 +37,7 @@ class ZCardTemplate (): Parcelable {
         "ZCardTemplate (" +
                 "id: $id, " +
                 "name: $name, " +
-                "uri: $templateData, " +
+                "uri: $templateUri, " +
                 "idBackground: $idBackground, " +
                 "frontPreview: $frontPreview " +
                 ")"
@@ -52,7 +52,7 @@ class ZCardTemplate (): Parcelable {
             dest.writeMap(fields)
             dest.writeLong(id)
             dest.writeString(name)
-            dest.writeParcelable(templateData, flags)
+            dest.writeParcelable(templateUri, flags)
             dest.writeParcelable(frontPreview, flags)
             dest.writeInt(idBackground)
         }
@@ -71,12 +71,10 @@ class ZCardTemplate (): Parcelable {
 //    }
 
     companion object CREATOR : Parcelable.Creator<ZCardTemplate> {
-        override fun createFromParcel(parcel: Parcel): ZCardTemplate {
-            return ZCardTemplate(parcel)
-        }
+        override fun createFromParcel(parcel: Parcel): ZCardTemplate =
+            ZCardTemplate(parcel)
 
-        override fun newArray(size: Int): Array<ZCardTemplate?> {
-            return arrayOfNulls(size)
-        }
+        override fun newArray(size: Int): Array<ZCardTemplate?> =
+            arrayOfNulls(size)
     }
 }

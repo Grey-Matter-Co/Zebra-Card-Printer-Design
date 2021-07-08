@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.IntentSender
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.net.Uri
 import android.provider.MediaStore
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
@@ -73,7 +74,7 @@ object FileHelper {
 				val fileDir = "${context.filesDir.path}/$TEMPLATEFILEDIRECTORY/$name"
 				val inputStream: InputStream = File("$fileDir.xml").inputStream()
 
-				return@mapIndexed ZCardTemplate((idx+1).toLong(), name, XMLDecoder.parseTemplate(File("$fileDir.xml").inputStream())).apply {
+				return@mapIndexed ZCardTemplate((idx+1).toLong(), name, Uri.fromFile(File("$fileDir.xml"))).apply {
 					if (File(fileDir).exists()) {
 						if (newTemplates.contains(name))
 							idBackground = R.drawable.card_holder
@@ -112,7 +113,7 @@ object FileHelper {
 
 	@SuppressLint("NewApi") //method only call from API 30 onwards
 	fun deleteTemplateBulk(context: Context, media: List<ZCardTemplate>): IntentSender {
-		val uris = media.map { it.templateData }
+		val uris = media.map { it.templateUri }
 		return MediaStore.createDeleteRequest(context.contentResolver, uris).intentSender
 	}
 }

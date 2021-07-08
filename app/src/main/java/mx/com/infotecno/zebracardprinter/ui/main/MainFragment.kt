@@ -59,7 +59,6 @@ class MainFragment : Fragment(), ActionMode.Callback, CoroutineScope {
 		private const val REQUEST_SELECT_TEMPLATE = 3002
 		private const val REQUEST_PERMISSION_MEDIA = 100
 	}
-
 	private val viewModel: MainViewModel by viewModels()
 
 	private var permissionDenied = false

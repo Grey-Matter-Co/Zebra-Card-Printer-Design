@@ -63,39 +63,7 @@ sealed class XMLCardTemplate {
 //                    “lam_any” = card goes to laminator without regard for laminate availability. if no laminate is
 //                                installed, the card simply passes through the laminator
 //                    “lam_none” = card passes through laminator without lamination
-	data class Template (val name: String, val card_type: Int, val card_thickness: Int = 30, val delete: BOOLEAN, val source: SOURCE = SOURCE.feeder, val destination: DESTINATION = DESTINATION.eject, val Fonts: List<Font>, val Sides: List<Side>, val Magdata: Magdata?): Parcelable {
-		constructor(parcel: Parcel) : this(
-			parcel.readString()?:"[NO NAME]",
-			parcel.readInt(),
-			parcel.readInt(),
-			BOOLEAN.valueOf(parcel.readString()?:"no"),
-			SOURCE.valueOf(parcel.readString()?:"feeder"),
-			DESTINATION.valueOf(parcel.readString()?:"eject"),
-			parcel.readParcelable<Font>(),
-			parcel.readParcelableList<Side>(),
-			parcel.readParcelable<Magdata>()
-		)
-
-		override fun writeToParcel(parcel: Parcel, flags: Int) {
-			parcel.writeString(name)
-			parcel.writeInt(card_type)
-			parcel.writeInt(card_thickness)
-		}
-
-		override fun describeContents(): Int {
-			return 0
-		}
-
-		companion object CREATOR : Parcelable.Creator<Template> {
-			override fun createFromParcel(parcel: Parcel): Template {
-				return Template(parcel)
-			}
-
-			override fun newArray(size: Int): Array<Template?> {
-				return arrayOfNulls(size)
-			}
-		}
-	}
+	data class Template (val name: String, val card_type: Int, val card_thickness: Int = 30, val delete: BOOLEAN, val source: SOURCE = SOURCE.feeder, val destination: DESTINATION = DESTINATION.eject, val Fonts: List<Font>, val Sides: List<Side>, val Magdata: Magdata?)
 
 	//    <font id="" name="" size="" bold="" italic="" underline="" />
 //        id font index; used by a text tag

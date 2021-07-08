@@ -1,6 +1,5 @@
 package mx.com.infotecno.zebracardprinter.adapter
 
-import android.annotation.SuppressLint
 import android.graphics.PorterDuff
 import android.view.LayoutInflater
 import android.view.View
@@ -60,10 +59,10 @@ class ZCardTemplatesAdapter(val clickListener: (ZCardTemplate, Int) -> Unit, val
 
     private class DiffCallback : DiffUtil.ItemCallback<ZCardTemplate>() {
         override fun areItemsTheSame(oldItem: ZCardTemplate, newItem: ZCardTemplate): Boolean =
-            (oldItem.name==newItem.name) and (oldItem.templateData==newItem.templateData) and (oldItem.idBackground==newItem.idBackground)
+            (oldItem.name==newItem.name) and (oldItem.templateUri==newItem.templateUri) and (oldItem.idBackground==newItem.idBackground)
 
         override fun areContentsTheSame(oldItem: ZCardTemplate, newItem: ZCardTemplate): Boolean =
-            (oldItem.templateData==newItem.templateData) and (oldItem.idBackground == newItem.idBackground)
+            (oldItem.templateUri==newItem.templateUri) and (oldItem.idBackground == newItem.idBackground)
     }
 
     // get params from card layout
