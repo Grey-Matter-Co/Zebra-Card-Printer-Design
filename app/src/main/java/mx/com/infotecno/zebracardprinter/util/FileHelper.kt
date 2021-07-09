@@ -10,14 +10,15 @@ import android.provider.MediaStore
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.zebra.sdk.common.card.template.ZebraCardTemplate
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import mx.com.infotecno.zebracardprinter.MainActivity.Companion.TEMPLATEFILEDIRECTORY
 import mx.com.infotecno.zebracardprinter.R
+import mx.com.infotecno.zebracardprinter.model.XMLCardTemplate
 import mx.com.infotecno.zebracardprinter.model.ZCardTemplate
 import java.io.File
 import java.io.FileOutputStream
-import java.io.InputStream
 import java.util.*
 
 object FileHelper {
@@ -64,7 +65,12 @@ object FileHelper {
 		}
 	}
 
-	suspend fun queryTemplate() {}
+	suspend fun queryTemplate(context: Context, templateName: String): XMLCardTemplate.Template {
+		return withContext(Dispatchers.IO) {
+			val fileDir = "${context.filesDir.path}/$TEMPLATEFILEDIRECTORY/$templateName"
+			XMLDecoder.parseTemplate(File("$fileDir.xml").inputStream())
+		}
+	}
 
 	suspend fun queryTemplatesOnDevice(context: Context, zebraCardTemplate: ZebraCardTemplate, newTemplates: List<String>): List<ZCardTemplate> {
 		var templates = mutableListOf<ZCardTemplate>()
@@ -72,7 +78,6 @@ object FileHelper {
 		withContext(Dispatchers.IO) {
 			templates = (zebraCardTemplate.allTemplateNames.mapIndexed { idx, name ->
 				val fileDir = "${context.filesDir.path}/$TEMPLATEFILEDIRECTORY/$name"
-				val inputStream: InputStream = File("$fileDir.xml").inputStream()
 
 				return@mapIndexed ZCardTemplate((idx+1).toLong(), name, Uri.fromFile(File("$fileDir.xml"))).apply {
 					if (File(fileDir).exists()) {

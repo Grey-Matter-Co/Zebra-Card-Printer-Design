@@ -116,6 +116,8 @@ class PrintTemplateFragment : Fragment() {
 				action.zCardTemplate.fields.forEach { (key, _) ->
 					binding.fieldsContainerLlyt.addView(addTemplateFieldView(key))
 				}
+
+				Log.d("EMBY", "handleAction: ${action.template}")
 			}
 
 			is ZCardTemplatePrintAction.CameraCapture -> // Opening Camera

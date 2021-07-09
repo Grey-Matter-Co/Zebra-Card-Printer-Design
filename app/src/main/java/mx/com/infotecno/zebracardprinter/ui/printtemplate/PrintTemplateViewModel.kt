@@ -6,14 +6,15 @@ import android.database.ContentObserver
 import android.net.Uri
 import android.os.Handler
 import android.provider.MediaStore
-import android.util.Log
-import androidx.appcompat.widget.AppCompatButton
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.launch
 import mx.com.infotecno.zebracardprinter.action.ZCardTemplatePrintAction
+import mx.com.infotecno.zebracardprinter.model.XMLCardTemplate
 import mx.com.infotecno.zebracardprinter.model.ZCardTemplate
-import java.io.File
+import mx.com.infotecno.zebracardprinter.util.FileHelper
 import mx.com.infotecno.zebracardprinter.util.ExecutingDevicesHelper as EDHelper
 
 class PrintTemplateViewModel(application: Application) : AndroidViewModel(application) {
@@ -32,11 +33,16 @@ class PrintTemplateViewModel(application: Application) : AndroidViewModel(applic
 //	}
 
 	fun loadTemplate(zCardTemplate: ZCardTemplate? = null) {
-		_actions.value = ZCardTemplatePrintAction.TemplateChanged(zCardTemplate!!)
+		viewModelScope.launch {
+			if (zCardTemplate != null)
+				_actions.value = ZCardTemplatePrintAction.TemplateChanged(zCardTemplate,
+					FileHelper.queryTemplate(getApplication<Application>(), zCardTemplate.name)
+				)
 
-		if (contentObserver == null)
-			contentObserver = getApplication<Application>().contentResolver.registerObserver(MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
-			{ loadTemplate() }
+			if (contentObserver == null)
+				contentObserver = getApplication<Application>().contentResolver.registerObserver(MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
+				{ loadTemplate() }
+		}
 	}
 
 	fun cameraCapture() {
