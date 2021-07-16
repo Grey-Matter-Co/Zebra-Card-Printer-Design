@@ -1,6 +1,5 @@
 package mx.com.infotecno.zebracardprinter.ui.printtemplate
 
-import android.R.attr.bitmap
 import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -15,6 +14,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.appcompat.widget.AppCompatButton
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -28,7 +28,6 @@ import mx.com.infotecno.zebracardprinter.databinding.PrinttemplateFragmentBindin
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import mx.com.infotecno.zebracardprinter.util.ExecutingDevicesHelper as EDHelper
-
 
 class PrintTemplateFragment : Fragment() {
 
@@ -55,8 +54,6 @@ class PrintTemplateFragment : Fragment() {
 
 	override fun onActivityCreated(savedInstanceState: Bundle?) {
 		super.onActivityCreated(savedInstanceState)
-
-
 //		setupUiComponents()
 	}
 
@@ -117,7 +114,9 @@ class PrintTemplateFragment : Fragment() {
 					binding.fieldsContainerLlyt.addView(addTemplateFieldView(key))
 				}
 
-				Log.d("EMBY", "handleAction: ${action.template}")
+				viewModel.testTemp(args.template.name, action.zCardTemplate.fields)
+
+				Log.d("EMBY", "handleAction: ${action.template.Sides[0]}")
 			}
 
 			is ZCardTemplatePrintAction.CameraCapture -> // Opening Camera
@@ -148,6 +147,9 @@ class PrintTemplateFragment : Fragment() {
 					override fun afterTextChanged(editable: Editable)
 						{ fields[fieldName] = editable.toString() }
 				})
+//				findViewById<TextInputEditText>(R.id.inputText).setOnFocusChangeListener { _, hasFocus ->
+//					Toast.makeText(activity,  if (hasFocus) "focused" else "focuse lose", Toast.LENGTH_LONG).show()
+//				}
 			}
 		}
 	}
