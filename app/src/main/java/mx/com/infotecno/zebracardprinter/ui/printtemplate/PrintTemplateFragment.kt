@@ -10,11 +10,9 @@ import android.os.Bundle
 import android.provider.MediaStore
 import android.text.Editable
 import android.text.TextWatcher
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.appcompat.widget.AppCompatButton
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -114,9 +112,7 @@ class PrintTemplateFragment : Fragment() {
 					binding.fieldsContainerLlyt.addView(addTemplateFieldView(key))
 				}
 
-				viewModel.testTemp(args.template.name, action.zCardTemplate.fields)
-
-				Log.d("EMBY", "handleAction: ${action.template.Sides[0]}")
+				viewModel.testTemp(args.template.name, action.template, binding.printerCard)
 			}
 
 			is ZCardTemplatePrintAction.CameraCapture -> // Opening Camera

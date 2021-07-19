@@ -1,10 +1,8 @@
 package mx.com.infotecno.zebracardprinter.ui.printtemplate
 
 import android.app.Application
-import android.content.ClipData.Item
 import android.content.ContentResolver
 import android.database.ContentObserver
-import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Handler
 import android.provider.MediaStore
@@ -17,6 +15,7 @@ import com.zebra.sdk.common.card.template.ZebraCardTemplate
 import kotlinx.coroutines.launch
 import mx.com.infotecno.zebracardprinter.MainActivity
 import mx.com.infotecno.zebracardprinter.action.ZCardTemplatePrintAction
+import mx.com.infotecno.zebracardprinter.model.XMLCardTemplate
 import mx.com.infotecno.zebracardprinter.model.ZCardTemplate
 import mx.com.infotecno.zebracardprinter.util.FileHelper
 import java.io.File
@@ -73,14 +72,44 @@ class PrintTemplateViewModel(application: Application) : AndroidViewModel(applic
 		return contentObserver
 	}
 
-	fun testTemp(name: String, fields: Map<String, Any>) {
+	fun testTemp(name: String, template: XMLCardTemplate.Template) {
 		val templateFieldKeys = zebraCardTemplate.getTemplateFields(name)
 
+		val TAG = "EMBY"
+		template.Sides.forEach { side ->
+			when (side.name) {
+				XMLCardTemplate.SIDETYPE.front -> {
+					side.printTypes.forEach { printType ->
+						printType.elements.forEach { e ->
+							when (e) {
+								is XMLCardTemplate.Element.Graphic -> {
+									Log.d(TAG, "testTemp: Graphic <${e.field}|${e.reference}>")
+									if (e.reference != null) {
 
+									}
+									else {
+
+									}
+								}
+								is XMLCardTemplate.Element.Text -> {
+									Log.d(TAG, "testTemp: Text <${e.field}|${e.data}>")
+								}
+								else -> Log.d("$TAG ERR", "testTemp: UNKNOW ELEMENT")
+							}
+						}
+					}
+				}
+				XMLCardTemplate.SIDETYPE.back -> {}
+			}
+
+		}
+
+		/* Zebra process
 		var list: List<Item>
 		val map: MutableMap<String, String> = HashMap()
 		for (i in templateFieldKeys) map[i] = ""
 
+		val templatePreviewList: MutableList<TemplatePreview> = LinkedList<TemplatePreview>()
 		zebraCardTemplate.getTemplateFields(name).forEach {
 			Log.d("EMBY", "testTemp var: $it")
 		}
@@ -90,24 +119,25 @@ class PrintTemplateViewModel(application: Application) : AndroidViewModel(applic
 			if (info.graphicData != null) {
 				val imageData = info.graphicData.imageData
 				val bitmap = BitmapFactory.decodeByteArray(imageData, 0, imageData.size)
+
 				templatePreviewList.add(
-					TemplatePreview(
-						weakContext.get().getString(R.string.card_side_and_type, info.side, info.printType),
-						bitmap
-					)
+					TemplatePreview(getApplication<Application>().applicationContext.getString(R.string.card_side_and_type, info.side, info.printType), bitmap)
 				)
 				bitmap.recycle()
 			} else {
 				templatePreviewList.add(
 					TemplatePreview(
-						weakContext.get().getString(R.string.card_side_and_type, info.side, info.printType),
-						weakContext.get().getString(R.string.no_image_data_found)
+						getApplication<Application>().applicationContext.getString(R.string.card_side_and_type, info.side, info.printType),
+						getApplication<Application>().applicationContext.getString(R.string.no_image_data_found)
 					)
 				)
 			}
 		}
 
-
+		templatePreviewList.forEach {
+			Log.d("EMBY", "testTemp: template $it")
+		}
+		*/
 
 	}
 }

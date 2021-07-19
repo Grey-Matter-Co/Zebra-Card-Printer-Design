@@ -41,5 +41,7 @@
     <string name="msg_error_reconnecting_to_printer">Error al reconectar con la impresora: %1$s</string>
     <string name="msg_error_template_is_salving">Una plantilla se está guardando</string>
     <string name="msg_error_invalid_zip">Archivo Zip Invalido</string>
+    <string name="card_side_and_type">%1$s (%2$s)</string>
+    <string name="no_image_data_found">No image data found</string>
     <!--	END Reconnection Printer	-->
 </resources>
