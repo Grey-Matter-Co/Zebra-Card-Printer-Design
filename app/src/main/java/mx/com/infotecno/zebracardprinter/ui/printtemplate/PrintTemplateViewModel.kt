@@ -2,11 +2,16 @@ package mx.com.infotecno.zebracardprinter.ui.printtemplate
 
 import android.app.Application
 import android.content.ContentResolver
+import android.content.Context
 import android.database.ContentObserver
 import android.net.Uri
 import android.os.Handler
 import android.provider.MediaStore
 import android.util.Log
+import android.view.View
+import android.widget.ImageView
+import android.widget.TextView
+import androidx.cardview.widget.CardView
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -18,6 +23,7 @@ import mx.com.infotecno.zebracardprinter.action.ZCardTemplatePrintAction
 import mx.com.infotecno.zebracardprinter.model.XMLCardTemplate
 import mx.com.infotecno.zebracardprinter.model.ZCardTemplate
 import mx.com.infotecno.zebracardprinter.util.FileHelper
+import org.w3c.dom.Text
 import java.io.File
 import mx.com.infotecno.zebracardprinter.util.ExecutingDevicesHelper as EDHelper
 
@@ -72,7 +78,7 @@ class PrintTemplateViewModel(application: Application) : AndroidViewModel(applic
 		return contentObserver
 	}
 
-	fun testTemp(name: String, template: XMLCardTemplate.Template) {
+	fun testTemp(name: String, template: XMLCardTemplate.Template, printerCard: CardView) {
 		val templateFieldKeys = zebraCardTemplate.getTemplateFields(name)
 
 		val TAG = "EMBY"
@@ -84,15 +90,14 @@ class PrintTemplateViewModel(application: Application) : AndroidViewModel(applic
 							when (e) {
 								is XMLCardTemplate.Element.Graphic -> {
 									Log.d(TAG, "testTemp: Graphic <${e.field}|${e.reference}>")
-									if (e.reference != null) {
-
-									}
-									else {
-
-									}
 								}
 								is XMLCardTemplate.Element.Text -> {
 									Log.d(TAG, "testTemp: Text <${e.field}|${e.data}>")
+									printerCard.addView(TextView(getApplication()).apply {
+										text = e.field?:e.data
+
+									})
+									Log.d(TAG, "testTemp: ADDED!")
 								}
 								else -> Log.d("$TAG ERR", "testTemp: UNKNOW ELEMENT")
 							}
