@@ -2,14 +2,17 @@ package mx.com.infotecno.zebracardprinter.ui.printtemplate
 
 import android.app.Application
 import android.content.ContentResolver
-import android.content.Context
 import android.database.ContentObserver
+import android.graphics.Color
+import android.graphics.Typeface
 import android.net.Uri
 import android.os.Handler
 import android.provider.MediaStore
 import android.util.Log
+import android.view.Gravity
 import android.view.View
 import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.cardview.widget.CardView
 import androidx.lifecycle.AndroidViewModel
@@ -19,12 +22,13 @@ import androidx.lifecycle.viewModelScope
 import com.zebra.sdk.common.card.template.ZebraCardTemplate
 import kotlinx.coroutines.launch
 import mx.com.infotecno.zebracardprinter.MainActivity
+import mx.com.infotecno.zebracardprinter.R
 import mx.com.infotecno.zebracardprinter.action.ZCardTemplatePrintAction
 import mx.com.infotecno.zebracardprinter.model.XMLCardTemplate
 import mx.com.infotecno.zebracardprinter.model.ZCardTemplate
 import mx.com.infotecno.zebracardprinter.util.FileHelper
-import org.w3c.dom.Text
 import java.io.File
+import java.util.*
 import mx.com.infotecno.zebracardprinter.util.ExecutingDevicesHelper as EDHelper
 
 
@@ -44,12 +48,81 @@ class PrintTemplateViewModel(application: Application) : AndroidViewModel(applic
 		this.setTemplateImageFileDirectory(getApplication<Application>().filesDir.path+ File.separator + MainActivity.TEMPLATEIMAGEFILEDIRECTORY)
 	}
 
-	fun loadTemplate(zCardTemplate: ZCardTemplate? = null) {
+	fun loadTemplate(zCardTemplate: ZCardTemplate? = null, printerCard: CardView? = null) {
 		viewModelScope.launch {
-			if (zCardTemplate != null)
-				_actions.value = ZCardTemplatePrintAction.TemplateChanged(zCardTemplate,
-					FileHelper.queryTemplate(getApplication<Application>(), zCardTemplate.name)
-				)
+			if (zCardTemplate != null && printerCard != null) {
+
+				val template = FileHelper.queryTemplate(getApplication<Application>(), zCardTemplate.name)
+				val listFieldViews = mutableListOf<View>()
+
+				template.Sides.forEach { side ->
+					when (side.name) {
+						XMLCardTemplate.SIDETYPE.front -> {
+							side.printTypes.forEach { printType ->
+								printType.elements.forEach { e ->
+									when (e) {
+										is XMLCardTemplate.Element.Graphic -> {
+											printerCard.addView(ImageView(getApplication()).apply {
+												val lp = LinearLayout.LayoutParams(e.width, e.height)
+												lp.setMargins(e.x, e.y, 0, 0)
+												layoutParams = lp
+												scaleType = ImageView.ScaleType.CENTER_CROP
+												if (!e.reference.isNullOrEmpty())
+													viewModelScope.launch {
+														this@apply.setImageBitmap(FileHelper.queryImage(getApplication(), zCardTemplate.name, e.reference))
+													}
+												else
+													setImageResource(R.drawable.bg_photo_field)
+												if (!e.field.isNullOrEmpty())
+													listFieldViews.add(this)
+											})
+										}
+										is XMLCardTemplate.Element.Text -> {
+											printerCard.addView(TextView(getApplication()).apply {
+												val curFont = template.Fonts[e.font_id]
+
+												File(template.path).also { folder ->
+													folder.listFiles { file -> file.name.contains(Regex("""${curFont.name.substring(0..2).toLowerCase(
+														Locale.ROOT)}[\w]+.ttf"""))}.also {
+														if (it != null)
+															typeface = Typeface.createFromFile(it[0])
+													}
+												}
+
+												if (curFont.bold == XMLCardTemplate.BOOLEAN.yes)
+													setTypeface(typeface, Typeface.BOLD)
+												if (curFont.italic == XMLCardTemplate.BOOLEAN.yes)
+													setTypeface(typeface, Typeface.ITALIC)
+												setTextColor(Color.parseColor(e.color))
+												textSize = curFont.size.toFloat()
+												text = e.field ?: e.data
+												layoutParams = LinearLayout.LayoutParams(e.width, e.height).apply {
+													setMargins(e.x, e.y, 0, 0)
+												}
+												gravity = (when (e.alignment) {
+													XMLCardTemplate.HALIGNMENT.center -> Gravity.CENTER_HORIZONTAL
+													XMLCardTemplate.HALIGNMENT.left -> Gravity.START
+													XMLCardTemplate.HALIGNMENT.right -> Gravity.END
+												}) or when (e.v_alignment) {
+													XMLCardTemplate.VALIGNMENT.center -> Gravity.CENTER_VERTICAL
+													XMLCardTemplate.VALIGNMENT.top -> Gravity.TOP
+													XMLCardTemplate.VALIGNMENT.bottom -> Gravity.BOTTOM
+												}
+												if (!e.field.isNullOrEmpty())
+													listFieldViews.add(this)
+											})
+										}
+										else -> Log.d("EMBY ERR", "testTemp: UNKNOW ELEMENT")
+									}
+								}
+							}
+						}
+						XMLCardTemplate.SIDETYPE.back -> {}
+					}
+				}
+
+				_actions.value = ZCardTemplatePrintAction.TemplateChanged(zCardTemplate, template, listFieldViews)
+			}
 
 			if (contentObserver == null)
 				contentObserver = getApplication<Application>().contentResolver.registerObserver(MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
@@ -64,7 +137,7 @@ class PrintTemplateViewModel(application: Application) : AndroidViewModel(applic
 			_actions.value = ZCardTemplatePrintAction.CameraCapture
 	}
 
-	fun requestCameraPermission()
+	private fun requestCameraPermission()
 		{ _actions.postValue(ZCardTemplatePrintAction.CameraPermissionsRequested) }
 
 	// Adding function to ContentResolver
@@ -77,72 +150,11 @@ class PrintTemplateViewModel(application: Application) : AndroidViewModel(applic
 		registerContentObserver(uri, true, contentObserver)
 		return contentObserver
 	}
-
-	fun testTemp(name: String, template: XMLCardTemplate.Template, printerCard: CardView) {
-		val templateFieldKeys = zebraCardTemplate.getTemplateFields(name)
-
-		val TAG = "EMBY"
-		template.Sides.forEach { side ->
-			when (side.name) {
-				XMLCardTemplate.SIDETYPE.front -> {
-					side.printTypes.forEach { printType ->
-						printType.elements.forEach { e ->
-							when (e) {
-								is XMLCardTemplate.Element.Graphic -> {
-									Log.d(TAG, "testTemp: Graphic <${e.field}|${e.reference}>")
-								}
-								is XMLCardTemplate.Element.Text -> {
-									Log.d(TAG, "testTemp: Text <${e.field}|${e.data}>")
-									printerCard.addView(TextView(getApplication()).apply {
-										text = e.field?:e.data
-
-									})
-									Log.d(TAG, "testTemp: ADDED!")
-								}
-								else -> Log.d("$TAG ERR", "testTemp: UNKNOW ELEMENT")
-							}
-						}
-					}
-				}
-				XMLCardTemplate.SIDETYPE.back -> {}
-			}
-
-		}
-
-		/* Zebra process
-		var list: List<Item>
-		val map: MutableMap<String, String> = HashMap()
-		for (i in templateFieldKeys) map[i] = ""
-
-		val templatePreviewList: MutableList<TemplatePreview> = LinkedList<TemplatePreview>()
-		zebraCardTemplate.getTemplateFields(name).forEach {
-			Log.d("EMBY", "testTemp var: $it")
-		}
-
-		val graphicsData = zebraCardTemplate.generateTemplateJob(name, map).graphicsData
-		for (info in graphicsData) {
-			if (info.graphicData != null) {
-				val imageData = info.graphicData.imageData
-				val bitmap = BitmapFactory.decodeByteArray(imageData, 0, imageData.size)
-
-				templatePreviewList.add(
-					TemplatePreview(getApplication<Application>().applicationContext.getString(R.string.card_side_and_type, info.side, info.printType), bitmap)
-				)
-				bitmap.recycle()
-			} else {
-				templatePreviewList.add(
-					TemplatePreview(
-						getApplication<Application>().applicationContext.getString(R.string.card_side_and_type, info.side, info.printType),
-						getApplication<Application>().applicationContext.getString(R.string.no_image_data_found)
-					)
-				)
-			}
-		}
-
-		templatePreviewList.forEach {
-			Log.d("EMBY", "testTemp: template $it")
-		}
-		*/
-
-	}
+//	fun testTemp(name: String, template: XMLCardTemplate.Template, printerCard: CardView) {
+//		val templateFieldKeys = zebraCardTemplate.getTemplateFields(name)
+//
+//
+//
+//		_actions.postValue(ZCardTemplatePrintAction.TemplateViewCreated(listFieldViews))
+//	}
 }

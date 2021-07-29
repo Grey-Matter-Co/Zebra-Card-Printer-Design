@@ -17,9 +17,17 @@
 
 	<!--	Card Template	-->
 	<dimen name="card_rad_corn">@dimen/spacing_middle</dimen>
-	<dimen name="card_width">342.4dp</dimen>
-	<dimen name="card_height">215.92dp</dimen>
+<!--	<dimen name="card_width">342.4dp</dimen>-->
+<!--	<dimen name="card_height">215.92dp</dimen>-->
+	<dimen name="card_width">357.30276dp</dimen>
+	<dimen name="card_height">223.177919dp</dimen>
 	<!--	END Card Template	-->
+
+<!--	342.4 		-> 942		2.75116822 | 0.363481953-->
+<!--	357.30276 	-> 983-->
+
+<!--	215.92 		-> 594		2.7510189-->
+<!--	223.177919 	-> 614-->
 
 	<!--	Printer Banner	-->
 	<dimen name="banner_size">56dp</dimen>

@@ -9,6 +9,7 @@
 	<color name="white">#FFFFFFFF</color>
 	<color name="color65TransparentPrimary">#A66200EE</color>
 	<color name="shadow_overlay">#80000000</color>
+	<color name="shadow_overlay_alt">#80FFFFFF</color>
 
 	<color name="red_600">#e53935</color>
 	<color name="grey_5">#f2f2f2</color>

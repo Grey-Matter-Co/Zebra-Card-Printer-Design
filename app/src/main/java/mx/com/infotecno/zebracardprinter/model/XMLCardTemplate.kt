@@ -27,8 +27,8 @@ sealed class XMLCardTemplate {
 	 */
 	enum class PRINTYPE {color, mono, overlay, inhibit, helper}
 	enum class GRAPHICFORMAT {bmp, jpeg, png}
-	enum class HALINGMENT {left, right, center}
-	enum class VALINGMENT {top, bottom, center}
+	enum class HALIGNMENT {left, right, center}
+	enum class VALIGNMENT {top, bottom, center}
 	enum class CODE {code39, code128, pdf417, ean8, ean13, qrCode}
 	enum class COMPACTIONMODE {auto, byte, numeric, text}
 	enum class ERRCORRECTIONLVL {l, m, q, h}
@@ -59,6 +59,7 @@ sealed class XMLCardTemplate {
 //                                installed, the card simply passes through the laminator
 //                    “lam_none” = card passes through laminator without lamination
 	data class Template (val name: String, val card_type: Int, val card_thickness: Int = 30, val delete: BOOLEAN, val source: SOURCE = SOURCE.feeder, val destination: DESTINATION = DESTINATION.eject, val Fonts: List<Font>, val Sides: List<Side>, val Magdata: Magdata?)
+		{ var path: String = "" }
 
 	//    <font id="" name="" size="" bold="" italic="" underline="" />
 //        id font index; used by a text tag
@@ -67,7 +68,7 @@ sealed class XMLCardTemplate {
 //        bold “yes” or “no”; default is “no”
 //        italic “yes” or “no”; default is “no”
 //        underline “yes” or “no”; default is “no”
-	data class Font (val id: Int, val name: String = "Arial", val size: Int = 10, val bold: BOOLEAN = BOOLEAN.no, val italic: BOOLEAN = BOOLEAN.no, val underline: BOOLEAN = BOOLEAN.no)
+	data class Font(val id: Int, val name: String = "Arial", val size: Double = 10.0, val bold: BOOLEAN = BOOLEAN.no, val italic: BOOLEAN = BOOLEAN.no, val underline: BOOLEAN = BOOLEAN.no)
 
 	//    <side name="" orientation="" rotation="" sharpness="" k_mode=””>
 //        name “front” or “back” default is “front”
@@ -121,7 +122,7 @@ sealed class XMLCardTemplate {
 	//					“top”, “bottom”, “center”; default is “left”
 	//		shrink “yes” or “no”; “yes” indicates if the text is to fit within the widthspecification
 	//	<text>data</text> data specifies the text data to print
-		data class Text(val order_id: Int?, val field: String?, val font_id: Int, val width: Int, val height: Int, val x: Int, val y: Int, val color: String, val angle: Int, val alingment: HALINGMENT = HALINGMENT.left, val v_alignment: VALINGMENT = VALINGMENT.top, val shrink: BOOLEAN = BOOLEAN.yes, val data: String?): Element() // TODO("find out how to set in tag references and not like as attribute")
+		data class Text(val order_id: Int?, val field: String?, val font_id: Int, val width: Int, val height: Int, val x: Int, val y: Int, val color: String, val angle: Int, val alignment: HALIGNMENT = HALIGNMENT.left, val v_alignment: VALIGNMENT = VALIGNMENT.top, val shrink: BOOLEAN = BOOLEAN.yes, val data: String?): Element() // TODO("find out how to set in tag references and not like as attribute")
 
 	//	<barcode order_id="" field="" font_id="" x="" y="" rotation="" code="" height="" width="" quiet_zone_width="" show_text="" correction_level="" minColumns="" columns="" minRows="" rows="" compact="" compactionMode="" error_correction_level="" encoding_name="" />
 	//		order_id processing order, 1 thru x with 1 being the bottom layer

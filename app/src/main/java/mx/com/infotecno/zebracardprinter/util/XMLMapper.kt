@@ -70,28 +70,28 @@ object XMLMapper {
 	private fun mapElements(document: Document): List<Pair<XMLCardTemplate.Element, String>> =
 		document.elements.map { elem -> when (elem) {
 			is XMLCardDesign.Element.XamlImageElement -> {
-				Pair(Graphic(null, null, GRAPHICFORMAT.valueOf(elem.source.substringAfterLast(".", "bmp")), elem.transparency, (elem.height*PPM).roundToInt(), (elem.width*PPM).roundToInt(), elem.left.roundToInt(), elem.top.roundToInt(), elem.angle, reference = elem.source),
+				Pair(Graphic(null, null, GRAPHICFORMAT.valueOf(elem.source.substringAfterLast(".", "bmp")), elem.transparency, (elem.height*PPM).roundToInt(), (elem.width*PPM).roundToInt(), (elem.left*PPM).roundToInt(), (elem.top*PPM).roundToInt(), elem.angle, reference = elem.source),
 					rgba2rgb(elem.backgroundColor))
 			}
 			is XMLCardDesign.Element.XamlTextElement -> {
-				val currentFont = Font(fontList.size, elem.fontFamily, (elem.fontSize*PPM).roundToInt(), BOOLEAN.valueOf(elem.fontWeight.contains("Bold")), BOOLEAN.valueOf(elem.fontWeight.contains("Italic")), BOOLEAN.valueOf(elem.fontWeight.contains("Underline")))
+				val currentFont = Font(fontList.size, elem.fontFamily, elem.fontSize, BOOLEAN.valueOf(elem.fontWeight.contains("Bold")), BOOLEAN.valueOf(elem.fontWeight.contains("Italic")), BOOLEAN.valueOf(elem.fontWeight.contains("Underline")))
 				if (null == fontList.find {font -> (font.name == currentFont.name) and (font.size == currentFont.size) and (font.bold == currentFont.bold) and (font.italic == currentFont.italic) and  (font.underline == currentFont.underline) })
 					fontList.add(currentFont)
 
 				if (hasFields(elem.text)) {
 					getFields(elem.text).forEach { field -> mutableFields[field] = "" }
 
-					Pair(Text(null, elem.text, currentFont.id, (elem.width*PPM).roundToInt(), (elem.height*PPM).roundToInt(), (elem.left*PPM).roundToInt(), (elem.top*PPM).roundToInt(), elem.textColor, elem.angle, HALINGMENT.valueOf(elem.alignmentH.toLowerCase(Locale.ENGLISH)), VALINGMENT.valueOf(elem.alignmentV.toLowerCase(Locale.ENGLISH)), if (elem.wrapText) BOOLEAN.yes else BOOLEAN.no, null),
+					Pair(Text(null, elem.text, currentFont.id, (elem.width*PPM).roundToInt(), (elem.height*PPM).roundToInt(), (elem.left*PPM).roundToInt(), (elem.top*PPM).roundToInt(), elem.textColor, elem.angle, HALIGNMENT.valueOf(elem.alignmentH.toLowerCase(Locale.ENGLISH)), VALIGNMENT.valueOf(elem.alignmentV.toLowerCase(Locale.ENGLISH)), if (elem.wrapText) BOOLEAN.yes else BOOLEAN.no, null),
 						rgba2rgb(elem.backgroundColor))
 				}
 				else
-					Pair(Text(null, null, currentFont.id, (elem.width*PPM).roundToInt(), (elem.height*PPM).roundToInt(), (elem.left*PPM).roundToInt(), (elem.top*PPM).roundToInt(), elem.textColor, elem.angle, HALINGMENT.valueOf(elem.alignmentH.toLowerCase(Locale.ENGLISH)), VALINGMENT.valueOf(elem.alignmentV.toLowerCase(Locale.ENGLISH)), if (elem.wrapText) BOOLEAN.yes else BOOLEAN.no, elem.text),
+					Pair(Text(null, null, currentFont.id, (elem.width*PPM).roundToInt(), (elem.height*PPM).roundToInt(), (elem.left*PPM).roundToInt(), (elem.top*PPM).roundToInt(), elem.textColor, elem.angle, HALIGNMENT.valueOf(elem.alignmentH.toLowerCase(Locale.ENGLISH)), VALIGNMENT.valueOf(elem.alignmentV.toLowerCase(Locale.ENGLISH)), if (elem.wrapText) BOOLEAN.yes else BOOLEAN.no, elem.text),
 						rgba2rgb(elem.backgroundColor))
 			}
 			is XMLCardDesign.Element.XamlPassportPhotoElement -> {
 				val newKey = genKey("photo")
 				mutableFields[newKey] = ""
-				Pair(Graphic(null, "{$newKey}", GRAPHICFORMAT.jpeg, elem.transparency, (elem.height*PPM).roundToInt(), (elem.width*PPM).roundToInt(), elem.left.roundToInt(), elem.top.roundToInt(), elem.angle, reference = null),
+				Pair(Graphic(null, "{$newKey}", GRAPHICFORMAT.jpeg, elem.transparency, (elem.height*PPM).roundToInt(), (elem.width*PPM).roundToInt(), (elem.left*PPM).roundToInt(), (elem.top*PPM).roundToInt(), elem.angle, reference = null),
 					rgba2rgb(elem.backgroundColor))
 			}
 		}}
@@ -125,7 +125,7 @@ object XMLMapper {
 	private fun getFields(input: String): List<String>
 			= fieldRegex.findAll(input).map { it.groupValues[1] }.toList()
 
-	private fun replace(input: String, field: String, replacement: String): String
+	fun replace(input: String, field: String, replacement: String): String
 			= Regex("""\{$field\}""").replace(input, replacement)
 
 

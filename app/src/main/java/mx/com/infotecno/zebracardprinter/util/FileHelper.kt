@@ -7,6 +7,7 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
 import android.provider.MediaStore
+import android.util.Log
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.zebra.sdk.common.card.template.ZebraCardTemplate
@@ -68,7 +69,16 @@ object FileHelper {
 	suspend fun queryTemplate(context: Context, templateName: String): XMLCardTemplate.Template {
 		return withContext(Dispatchers.IO) {
 			val fileDir = "${context.filesDir.path}/$TEMPLATEFILEDIRECTORY/$templateName"
-			XMLDecoder.parseTemplate(File("$fileDir.xml").inputStream())
+			XMLDecoder.parseTemplate(File("$fileDir.xml").inputStream()).apply {
+				this.path = "$fileDir"
+			}
+		}
+	}
+
+	suspend fun queryImage(context: Context, templateName: String, imageName: String): Bitmap {
+		return withContext(Dispatchers.IO) {
+			val fileDir = "${context.filesDir.path}/$TEMPLATEFILEDIRECTORY/$templateName/$imageName"
+			BitmapFactory.decodeFile(fileDir)
 		}
 	}
 

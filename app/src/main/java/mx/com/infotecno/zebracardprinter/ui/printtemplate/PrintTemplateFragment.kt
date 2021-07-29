@@ -5,15 +5,17 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Bitmap.CompressFormat
-import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.provider.MediaStore
 import android.text.Editable
 import android.text.TextWatcher
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.TextView
 import androidx.appcompat.widget.AppCompatButton
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.navArgs
@@ -23,9 +25,11 @@ import com.google.android.material.textfield.TextInputLayout
 import mx.com.infotecno.zebracardprinter.R
 import mx.com.infotecno.zebracardprinter.action.ZCardTemplatePrintAction
 import mx.com.infotecno.zebracardprinter.databinding.PrinttemplateFragmentBinding
+import mx.com.infotecno.zebracardprinter.util.XMLMapper
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import mx.com.infotecno.zebracardprinter.util.ExecutingDevicesHelper as EDHelper
+
 
 class PrintTemplateFragment : Fragment() {
 
@@ -58,7 +62,7 @@ class PrintTemplateFragment : Fragment() {
 	override fun onResume() {
 		super.onResume()
 		if (!this::fields.isInitialized) {
-			viewModel.loadTemplate(args.template)
+			viewModel.loadTemplate(args.template, binding.printerCard)
 			fields = args.template.fields.toMutableMap()
 		}
 	}
@@ -75,7 +79,9 @@ class PrintTemplateFragment : Fragment() {
 			val bitmapdata: ByteArray = bos.toByteArray()
 			val bs = ByteArrayInputStream(bitmapdata)
 
-			btn.background = Drawable.createFromStream(bs, "photo")
+//			btn.background = Drawable.createFromStream(bs, "photo")
+			btn.background = ContextCompat.getDrawable(requireContext(), R.drawable.bg_add_photo_ready)
+
 
 //			val curPaddingV = it.paddingTop
 //			val curPaddingH = it.paddingLeft
@@ -109,10 +115,12 @@ class PrintTemplateFragment : Fragment() {
 		when (action) {
 			is ZCardTemplatePrintAction.TemplateChanged -> { //Template Added
 				action.zCardTemplate.fields.forEach { (key, _) ->
-					binding.fieldsContainerLlyt.addView(addTemplateFieldView(key))
+					binding.fieldsContainerLlyt.addView(addTemplateFieldView(key, action.listFieldViews))
 				}
+			}
 
-				viewModel.testTemp(args.template.name, action.template, binding.printerCard)
+			is ZCardTemplatePrintAction.TemplateViewCreated -> {
+
 			}
 
 			is ZCardTemplatePrintAction.CameraCapture -> // Opening Camera
@@ -124,7 +132,7 @@ class PrintTemplateFragment : Fragment() {
 
 	private fun setupUiComponents() {}
 
-	private fun addTemplateFieldView(fieldName: String): View {
+	private fun addTemplateFieldView(fieldName: String, listFieldViews: List<View>): View {
 		if (fieldName.contains("photo")) {
 			return (layoutInflater.inflate( R.layout.item_template_photo_field, binding.printTemplate, false) as AppCompatButton).apply {
 				text = fieldName
@@ -140,8 +148,18 @@ class PrintTemplateFragment : Fragment() {
 				findViewById<TextInputEditText>(R.id.inputText).addTextChangedListener(object : TextWatcher {
 					override fun beforeTextChanged(charSequence: CharSequence, i: Int, i1: Int, i2: Int) {}
 					override fun onTextChanged(charSequence: CharSequence, i: Int, i1: Int, i2: Int) {}
-					override fun afterTextChanged(editable: Editable)
-						{ fields[fieldName] = editable.toString() }
+					override fun afterTextChanged(editable: Editable) {
+						fields[fieldName] = editable.toString()
+
+						val view: TextView = listFieldViews.filter {
+							if (it is TextView)
+								it.text.contains("{$fieldName}")
+							else false
+						}[0] as TextView
+						Log.d("EMBY", "afterTextChanged: previus ${view.text}")
+						view.text = XMLMapper.replace(view.text as String, fieldName, if (editable.isNotEmpty()) editable.toString() else fieldName)
+						Log.d("EMBY", "afterTextChanged: after ${view.text}")
+					}
 				})
 //				findViewById<TextInputEditText>(R.id.inputText).setOnFocusChangeListener { _, hasFocus ->
 //					Toast.makeText(activity,  if (hasFocus) "focused" else "focuse lose", Toast.LENGTH_LONG).show()

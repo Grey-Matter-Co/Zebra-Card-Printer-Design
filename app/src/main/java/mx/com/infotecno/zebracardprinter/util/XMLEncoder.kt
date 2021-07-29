@@ -128,7 +128,7 @@ object XMLEncoder {
 					serializer.attribute(ns, "angle", element.angle.toString())
 					serializer.attribute(ns, "height", element.height.toString())
 					serializer.attribute(ns, "width", element.width.toString())
-					serializer.attribute(ns, "alingment", element.alingment.toString())
+					serializer.attribute(ns, "alignment", element.alignment.toString())
 					serializer.attribute(ns, "v_alignment", element.v_alignment.toString())
 					serializer.attribute(ns, "shrink", element.shrink.toString())
 

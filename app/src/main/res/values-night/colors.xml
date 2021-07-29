@@ -2,5 +2,6 @@
 <resources>
 	<color name="color65TransparentPrimary">#A6BB86FC</color>
 	<color name="shadow_overlay">#80FFFFFF</color>
+	<color name="shadow_overlay_alt">#80000000</color>
 	<color name="transparent_white_overlay">#EF000000</color>
 </resources>

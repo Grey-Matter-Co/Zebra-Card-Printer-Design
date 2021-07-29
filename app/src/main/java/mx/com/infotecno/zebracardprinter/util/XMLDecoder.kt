@@ -455,7 +455,7 @@ object XMLDecoder {
 
         val id: Int = parser.getAttributeValue(null, "id").toInt()
         val name: String = parser.getAttributeValue(null, "name")
-        val size: Int = parser.getAttributeValue(null, "size").toInt()
+        val size: Double = parser.getAttributeValue(null, "size").toDouble()
         val bold: BOOLEAN = BOOLEAN.valueOf(parser.getAttributeValue(null, "bold"))
         val italic: BOOLEAN = BOOLEAN.valueOf(parser.getAttributeValue(null, "italic"))
         val underline: BOOLEAN = BOOLEAN.valueOf(parser.getAttributeValue(null, "underline"))
@@ -588,8 +588,8 @@ object XMLDecoder {
         val y: Int = parser.getAttributeValue(null, "y").toInt()
         val color: String? = parser.getAttributeValue(null, "color")
         val angle: Int = parser.getAttributeValue(null, "angle").toInt()
-        val alignment: HALINGMENT? = safeValueOf<HALINGMENT>(parser.getAttributeValue(null, "alignment"))
-        val vAlignment: VALINGMENT? = safeValueOf<VALINGMENT>(parser.getAttributeValue(null, "v_alignment"))
+        val alignment: HALIGNMENT? = safeValueOf<HALIGNMENT>(parser.getAttributeValue(null, "alignment"))
+        val vAlignment: VALIGNMENT? = safeValueOf<VALIGNMENT>(parser.getAttributeValue(null, "v_alignment"))
         val shrink: BOOLEAN? = safeValueOf<BOOLEAN>(parser.getAttributeValue(null, "shrink"))
 
         var data: String? = null
@@ -602,7 +602,7 @@ object XMLDecoder {
             while (parser.next() != XmlPullParser.END_TAG);
 
 
-        return XMLCardTemplate.Element.Text(orderId, field, fontId, width?:0, height?:0, x, y, color?:"0x000000", angle, alignment?:HALINGMENT.left, vAlignment?:VALINGMENT.top, shrink?:BOOLEAN.yes, data)
+        return XMLCardTemplate.Element.Text(orderId, field, fontId, width?:0, height?:0, x, y, color?:"0x000000", angle, alignment?:HALIGNMENT.left, vAlignment?:VALIGNMENT.top, shrink?:BOOLEAN.yes, data)
     }
 
     @Throws(XmlPullParserException::class, IOException::class)
