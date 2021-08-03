@@ -119,7 +119,7 @@ sealed class XMLCardTemplate {
 	//		alignment horizontal alignment within the text box; only valid if height and width have been defined
 	//					“left”, “right”, “center”; default is “left”
 	//		v_alignment vertical alignment within the text box; only valid if height and width have been defined
-	//					“top”, “bottom”, “center”; default is “left”
+	//					“top”, “bottom”, “center”; default is “top”
 	//		shrink “yes” or “no”; “yes” indicates if the text is to fit within the widthspecification
 	//	<text>data</text> data specifies the text data to print
 		data class Text(val order_id: Int?, val field: String?, val font_id: Int, val width: Int, val height: Int, val x: Int, val y: Int, val color: String, val angle: Int, val alignment: HALIGNMENT = HALIGNMENT.left, val v_alignment: VALIGNMENT = VALIGNMENT.top, val shrink: BOOLEAN = BOOLEAN.yes, val data: String?): Element() // TODO("find out how to set in tag references and not like as attribute")

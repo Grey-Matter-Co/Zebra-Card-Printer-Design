@@ -11,15 +11,13 @@ import android.util.Log
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.zebra.sdk.common.card.template.ZebraCardTemplate
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import mx.com.infotecno.zebracardprinter.MainActivity.Companion.TEMPLATEFILEDIRECTORY
 import mx.com.infotecno.zebracardprinter.R
 import mx.com.infotecno.zebracardprinter.model.XMLCardTemplate
 import mx.com.infotecno.zebracardprinter.model.ZCardTemplate
-import java.io.File
-import java.io.FileOutputStream
+import java.io.*
 import java.util.*
 
 object FileHelper {
