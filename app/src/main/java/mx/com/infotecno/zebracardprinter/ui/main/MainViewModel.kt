@@ -38,7 +38,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private var contentObserver: ContentObserver? = null
 
     private var zebraCardTemplate: ZebraCardTemplate = ZebraCardTemplate(getApplication(), null).apply {
-        Log.d("EMBY", "zebraCardTemplate: ${getApplication<Application>().filesDir.path+ File.separator + TEMPLATEFILEDIRECTORY}")
         this.setTemplateFileDirectory(getApplication<Application>().filesDir.path+ File.separator + TEMPLATEFILEDIRECTORY)
         this.setTemplateImageFileDirectory(getApplication<Application>().filesDir.path+ File.separator + TEMPLATEIMAGEFILEDIRECTORY)
     }

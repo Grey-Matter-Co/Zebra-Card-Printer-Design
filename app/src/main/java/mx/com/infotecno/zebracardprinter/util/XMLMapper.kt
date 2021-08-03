@@ -112,7 +112,7 @@ object XMLMapper {
 
 	private fun genKey(prefix: String): String {
 		var i = 1
-		mutableFields.forEach { field, value ->
+		mutableFields.forEach { (field, value) ->
 			if (field.contains(prefix))
 				i++
 		}
@@ -120,13 +120,16 @@ object XMLMapper {
 	}
 
 	private fun hasFields(input: String): Boolean
-			= fieldRegex.containsMatchIn(input)
+		= fieldRegex.containsMatchIn(input)
 
-	private fun getFields(input: String): List<String>
-			= fieldRegex.findAll(input).map { it.groupValues[1] }.toList()
+	fun getField(input: String): String
+		= fieldRegex.find(input)!!.groupValues[1]
+
+	fun getFields(input: String): List<String>
+		= fieldRegex.findAll(input).map { it.groupValues[1] }.toList()
 
 	fun replace(input: String, field: String, replacement: String): String
-			= Regex("""\{$field\}""").replace(input, replacement)
+		= Regex("""\{$field\}""").replace(input, replacement)
 
 
 }

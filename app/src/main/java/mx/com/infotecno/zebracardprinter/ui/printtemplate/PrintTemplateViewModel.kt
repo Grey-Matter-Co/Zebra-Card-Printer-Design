@@ -27,6 +27,7 @@ import mx.com.infotecno.zebracardprinter.action.ZCardTemplatePrintAction
 import mx.com.infotecno.zebracardprinter.model.XMLCardTemplate
 import mx.com.infotecno.zebracardprinter.model.ZCardTemplate
 import mx.com.infotecno.zebracardprinter.util.FileHelper
+import mx.com.infotecno.zebracardprinter.util.XMLMapper
 import java.io.File
 import java.util.*
 import mx.com.infotecno.zebracardprinter.util.ExecutingDevicesHelper as EDHelper
@@ -43,7 +44,6 @@ class PrintTemplateViewModel(application: Application) : AndroidViewModel(applic
 //	private val _actions = mutableMapOf<String, Any>()    // This will be operated and changed
 //	val action: Map<String, Any> get() = this._actions      // This only returns unmodified list
 	var zebraCardTemplate: ZebraCardTemplate = ZebraCardTemplate(getApplication(), null).apply {
-		Log.d("EMBY", "zebraCardTemplate: ${getApplication<Application>().filesDir.path+ File.separator + MainActivity.TEMPLATEFILEDIRECTORY}")
 		this.setTemplateFileDirectory(getApplication<Application>().filesDir.path+ File.separator + MainActivity.TEMPLATEFILEDIRECTORY)
 		this.setTemplateImageFileDirectory(getApplication<Application>().filesDir.path+ File.separator + MainActivity.TEMPLATEIMAGEFILEDIRECTORY)
 	}
@@ -53,7 +53,8 @@ class PrintTemplateViewModel(application: Application) : AndroidViewModel(applic
 			if (zCardTemplate != null && printerCard != null) {
 
 				val template = FileHelper.queryTemplate(getApplication<Application>(), zCardTemplate.name)
-				val listFieldViews = mutableListOf<View>()
+				val mapFields = mutableMapOf<String, View>()
+				val listFieldFormats = mutableListOf<String>()
 
 				template.Sides.forEach { side ->
 					when (side.name) {
@@ -72,9 +73,9 @@ class PrintTemplateViewModel(application: Application) : AndroidViewModel(applic
 														this@apply.setImageBitmap(FileHelper.queryImage(getApplication(), zCardTemplate.name, e.reference))
 													}
 												else
-													setImageResource(R.drawable.bg_photo_field)
+													setBackgroundResource(R.drawable.bg_photo_field)
 												if (!e.field.isNullOrEmpty())
-													listFieldViews.add(this)
+													mapFields[XMLMapper.getField(e.field)] = this
 											})
 										}
 										is XMLCardTemplate.Element.Text -> {
@@ -108,8 +109,12 @@ class PrintTemplateViewModel(application: Application) : AndroidViewModel(applic
 													XMLCardTemplate.VALIGNMENT.top -> Gravity.TOP
 													XMLCardTemplate.VALIGNMENT.bottom -> Gravity.BOTTOM
 												}
-												if (!e.field.isNullOrEmpty())
-													listFieldViews.add(this)
+												if (!e.field.isNullOrEmpty()) {
+													listFieldFormats.add(this.text.toString())
+													XMLMapper.getFields(e.field).forEach {
+														mapFields[it] = this
+													}
+												}
 											})
 										}
 										else -> Log.d("EMBY ERR", "testTemp: UNKNOW ELEMENT")
@@ -121,7 +126,7 @@ class PrintTemplateViewModel(application: Application) : AndroidViewModel(applic
 					}
 				}
 
-				_actions.value = ZCardTemplatePrintAction.TemplateChanged(zCardTemplate, template, listFieldViews)
+				_actions.value = ZCardTemplatePrintAction.TemplateChanged(zCardTemplate, template, mapFields, listFieldFormats)
 			}
 
 			if (contentObserver == null)

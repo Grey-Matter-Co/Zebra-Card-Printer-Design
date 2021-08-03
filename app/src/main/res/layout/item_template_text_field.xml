@@ -11,6 +11,7 @@
         android:id="@+id/inputText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        />
+        android:selectAllOnFocus="true"
+        android:singleLine="true" />
 
 </com.google.android.material.textfield.TextInputLayout>
