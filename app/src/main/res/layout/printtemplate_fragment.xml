@@ -38,16 +38,16 @@
         app:layout_constraintTop_toBottomOf="@id/printer_card" app:layout_constraintEnd_toEndOf="parent"/>
 
     <androidx.appcompat.widget.AppCompatButton
-        android:id="@+id/button"
+        android:id="@+id/btn_send2print"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="@dimen/spacing_middle"
         android:layout_marginVertical="@dimen/spacing_large"
-        android:background="@drawable/bg_add_photo"
+        android:background="@drawable/bg_send_print"
         android:paddingVertical="@dimen/spacing_smlarge"
         android:textAppearance="?attr/textAppearanceSubtitle1"
-        android:textColor="@color/shadow_overlay"
+        android:textColor="@color/shadow_overlay_alt"
         app:layout_constraintTop_toBottomOf="@+id/fields_container_Llyt"
-        android:text="Print OwO"
+        android:text="@string/print"
         />
 </androidx.constraintlayout.widget.ConstraintLayout>

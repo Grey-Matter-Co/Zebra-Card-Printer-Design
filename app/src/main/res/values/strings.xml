@@ -43,5 +43,10 @@
     <string name="msg_error_invalid_zip">Archivo Zip Invalido</string>
     <string name="card_side_and_type">%1$s (%2$s)</string>
     <string name="no_image_data_found">No image data found</string>
+    <string name="print">Imprimir</string>
+    <string name="checking_printer_status"><![CDATA[Checking printer status&#8230;]]></string>
+    <string name="printer_not_ready_message">%1$s (%2$s). Please fix the issue and try again.</string>
+    <string name="no_magnetic_track_data_to_encode">No magnetic track data to encode.</string>
+    <string name="invalid_template_file_selected">Invalid template file selected</string>
     <!--	END Reconnection Printer	-->
 </resources>

@@ -10,11 +10,9 @@ import android.os.Bundle
 import android.provider.MediaStore
 import android.text.Editable
 import android.text.TextWatcher
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.widget.AppCompatButton
 import androidx.core.content.ContextCompat
@@ -24,16 +22,27 @@ import androidx.navigation.fragment.navArgs
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
+import com.zebra.sdk.common.card.template.ZebraCardTemplate
+import com.zebra.sdk.printer.discovery.DiscoveredPrinter
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import mx.com.infotecno.zebracardprinter.R
 import mx.com.infotecno.zebracardprinter.action.ZCardTemplatePrintAction
 import mx.com.infotecno.zebracardprinter.databinding.PrinttemplateFragmentBinding
+import mx.com.infotecno.zebracardprinter.discovery.SelectedPrinterManager
+import mx.com.infotecno.zebracardprinter.print.SendTemplateJobTask
+import mx.com.infotecno.zebracardprinter.util.AsyncTaskHelper
+import mx.com.infotecno.zebracardprinter.util.UIHelper
 import mx.com.infotecno.zebracardprinter.util.XMLMapper
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
+import kotlin.coroutines.CoroutineContext
 import mx.com.infotecno.zebracardprinter.util.ExecutingDevicesHelper as EDHelper
 
 
-class PrintTemplateFragment : Fragment() {
+class PrintTemplateFragment : Fragment(), CoroutineScope {
 
 	companion object {
 		private const val REQUEST_CAMERA = 3003
@@ -44,6 +53,9 @@ class PrintTemplateFragment : Fragment() {
 
 	private val viewModel: PrintTemplateViewModel by viewModels()
 
+	private val zebraCardTemplate = ZebraCardTemplate(requireContext(), null)
+	private var printer: DiscoveredPrinter? = null
+
 	private var permissionDenied = false
 
 	private lateinit var btn: AppCompatButton
@@ -52,15 +64,22 @@ class PrintTemplateFragment : Fragment() {
 	private lateinit var mapFieldsViews: Map<String, View>
 	private var cameraField: String? = null
 
+	//For Coroutines
+	private var jobSendTemplate : Job = Job()
+	private var sendTemplateJobTask: SendTemplateJobTask? = null
+	override val coroutineContext: CoroutineContext
+		get() = Job() + Dispatchers.IO
+
 	override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
 		binding = PrinttemplateFragmentBinding.inflate(inflater)
+		printer = SelectedPrinterManager.getSelectedPrinter()
 		viewModel.action.observe(viewLifecycleOwner, { action -> handleAction(action) })
 		return binding.root
 	}
 
 	override fun onActivityCreated(savedInstanceState: Bundle?) {
 		super.onActivityCreated(savedInstanceState)
-//		setupUiComponents()
+		setupUiComponents()
 	}
 
 	override fun onResume() {
@@ -69,6 +88,11 @@ class PrintTemplateFragment : Fragment() {
 			viewModel.loadTemplate(args.template, binding.printerCard)
 			fields = args.template.fields.toMutableMap()
 		}
+	}
+
+	override fun onDestroy() {
+		super.onDestroy()
+		jobSendTemplate.cancel()
 	}
 
 	override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -126,7 +150,18 @@ class PrintTemplateFragment : Fragment() {
 		}
 	}
 
-	private fun setupUiComponents() {}
+	private fun setupUiComponents() {
+		binding.btnSend2print.setOnClickListener {
+			if (!isWaitingForAsyncTask()) {
+				UIHelper.hideSoftKeyboard(requireActivity())
+				it.isEnabled = false
+				//val templateFragment: TemplateJobFragment = templateFragmentPagerAdapter.getTemplateFragment()
+				sendTemplateJobTask = SendTemplateJobTask(requireContext(), printer, zebraCardTemplate, args.template.name, templateFragment.getVariableData())
+				sendTemplateJobTask!!.setOnSendTemplateJobListener(templateFragment)
+				jobSendTemplate = launch { sendTemplateJobTask!!.execute() }
+			}
+		}
+	}
 
 	private fun addTemplateFieldView(fieldName: String, listFieldFormats: List<String>): View {
 		if (fieldName.contains("photo")) {
@@ -161,5 +196,9 @@ class PrintTemplateFragment : Fragment() {
 				})
 			}
 		}
+	}
+
+	private fun isWaitingForAsyncTask(): Boolean {
+		return AsyncTaskHelper.isAsyncTaskRunning(sendTemplateJobTask)
 	}
 }
