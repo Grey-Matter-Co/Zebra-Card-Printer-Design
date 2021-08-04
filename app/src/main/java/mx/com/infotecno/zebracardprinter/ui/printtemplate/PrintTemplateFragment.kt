@@ -73,37 +73,14 @@ class PrintTemplateFragment : Fragment() {
 
 	override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
 		if (requestCode == REQUEST_CAMERA && resultCode == Activity.RESULT_OK) {
-			Log.d("EMBY", "onActivityResult: string catched ${cameraField?:"[NONE]"}")
-
-			Log.d("EMBY", "onActivityResult: string catched $mapFieldsViews")
-			Log.d("EMBY", "onActivityResult: string catched ${mapFieldsViews[cameraField]}")
-
-
-
 			val photo = data!!.extras!!["data"] as Bitmap?
-//			imageView.setImageBitmap(photo)
-			Snackbar.make(binding.root, "GOT IMAGE! $photo", Snackbar.LENGTH_SHORT).show()
-
-
 			val bos = ByteArrayOutputStream()
 			photo!!.compress(CompressFormat.PNG, 0 /*ignored for PNG*/, bos)
-			val bitmapdata: ByteArray = bos.toByteArray()
-			val bs = ByteArrayInputStream(bitmapdata)
 
-			mapFieldsViews[cameraField]!!.background = Drawable.createFromStream(bs, cameraField)
+			mapFieldsViews[cameraField]!!.background = Drawable.createFromStream(ByteArrayInputStream(bos.toByteArray()), cameraField)
 
-//			btn.background = Drawable.createFromStream(bs, "photo")
 			btn.background = ContextCompat.getDrawable(requireContext(), R.drawable.bg_add_photo_ready)
 
-
-//			val curPaddingV = it.paddingTop
-//			val curPaddingH = it.paddingLeft
-//			val colorGreen = Color.argb(242,139,195,74)
-//			val bgDraw = ContextCompat.getDrawable(context, R.drawable.bg_add_photo_ready)!!
-//			DrawableCompat.setTint(bgDraw, colorGreen)
-//			it.background = bgDraw
-//			it.setTextColor(colorGreen)
-//			it.setPadding(curPaddingH, curPaddingV, curPaddingH, curPaddingV)
 		}
 		cameraField = null
 	}

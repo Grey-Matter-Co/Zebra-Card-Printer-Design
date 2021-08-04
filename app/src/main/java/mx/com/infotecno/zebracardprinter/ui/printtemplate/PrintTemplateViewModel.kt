@@ -40,7 +40,6 @@ class PrintTemplateViewModel(application: Application) : AndroidViewModel(applic
 
 	private var contentObserver: ContentObserver? = null
 
-
 //	private val _actions = mutableMapOf<String, Any>()    // This will be operated and changed
 //	val action: Map<String, Any> get() = this._actions      // This only returns unmodified list
 	var zebraCardTemplate: ZebraCardTemplate = ZebraCardTemplate(getApplication(), null).apply {
